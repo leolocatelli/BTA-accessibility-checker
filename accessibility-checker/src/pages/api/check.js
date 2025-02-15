@@ -32,13 +32,44 @@ export default async function handler(req, res) {
 
         console.log("✅ Accessibility results obtained:", results.violations);
 
-        // Extract images + ALT text
-        const images = await page.evaluate(() =>
-            Array.from(document.querySelectorAll("img")).map(img => ({
-                src: img.src,
-                alt: img.alt || "(No ALT text)"
-            }))
-        );
+        // Scroll to bottom to trigger lazy-loaded images
+        await page.evaluate(async () => {
+            await new Promise((resolve) => {
+                let totalHeight = 0;
+                const distance = 200; // Adjust scrolling speed
+                const timer = setInterval(() => {
+                    window.scrollBy(0, distance);
+                    totalHeight += distance;
+
+                    if (totalHeight >= document.body.scrollHeight) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, 100);
+            });
+        });
+
+        // Wait for images to load completely (Alternative Fix for waitForTimeout)
+        await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 4000)));
+
+        // Extract images, checking both `src` and `data-src`
+        const images = await page.evaluate(() => {
+            const seenImages = new Set();
+            return Array.from(document.querySelectorAll("img"))
+                .map(img => ({
+                    src: img.src || img.getAttribute("data-src") || "(No image source)",
+                    alt: img.alt || "(No ALT text)"
+                }))
+                .filter(img => {
+                    const key = `${img.src}-${img.alt}`;
+                    if (seenImages.has(key)) {
+                        return false; // Ignore duplicate images
+                    }
+                    seenImages.add(key);
+                    return true; // Keep unique images
+                });
+        });
+        
 
         await browser.close();
 
