@@ -17,7 +17,6 @@ export default async function handler(req, res) {
 
         console.log(`🔍 Starting accessibility analysis for: ${url}`);
 
-        // Launch Puppeteer and ignore SSL certificate errors
         const browser = await puppeteer.launch({
             headless: "new",
             args: ["--ignore-certificate-errors"]
@@ -32,6 +31,14 @@ export default async function handler(req, res) {
         const results = await new AxePuppeteer(page).analyze();
 
         console.log("✅ Accessibility results obtained:", results.violations);
+
+        // Extract images + ALT text
+        const images = await page.evaluate(() =>
+            Array.from(document.querySelectorAll("img")).map(img => ({
+                src: img.src,
+                alt: img.alt || "(No ALT text)"
+            }))
+        );
 
         await browser.close();
 
@@ -49,12 +56,13 @@ export default async function handler(req, res) {
             score -= weight;
         });
 
-        score = Math.max(0, score); // Ensure score never goes below 0
+        score = Math.max(0, score);
 
         res.status(200).json({
             success: true,
             url,
             score,
+            images,
             violations: results.violations.map((violation) => ({
                 description: violation.description,
                 impact: violation.impact,

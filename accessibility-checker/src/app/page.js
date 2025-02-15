@@ -1,4 +1,4 @@
-"use client"; // Necessário para Next.js App Router
+"use client"; // Required for Next.js App Router
 
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
@@ -27,16 +27,22 @@ export default function Home() {
     }
   };
 
-
-
   return (
-    <div className="p-6 mt-40 max-w-2xl mx-auto bg-white rounded-lg shadow-md">
-      <h1 className="text-xl font-bold mb-4 p-2 text-center">Accessibility Checker</h1>
-      <div className=" flex flex-col gap-4 ">
-      <InputField url={url} setUrl={setUrl} />
-      <SubmitButton onClick={checkAccessibility} loading={loading} />
-      <Report report={report} />
+    <div className="p-6 mt-40 max-w-3xl mx-auto bg-white rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-4 p-2 text-center">Accessibility Checker</h1>
+      
+      {/* Input and Button Section */}
+      <div className="flex flex-col gap-4">
+        <InputField url={url} setUrl={setUrl} />
+        <SubmitButton onClick={checkAccessibility} loading={loading} />
       </div>
+
+      {/* Report Section */}
+      {report && (
+        <div className="mt-6">
+          <Report report={report} />
+        </div>
+      )}
     </div>
   );
 }
