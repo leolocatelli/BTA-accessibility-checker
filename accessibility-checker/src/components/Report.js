@@ -52,19 +52,28 @@ export default function Report({ report }) {
       </div>
 
       {/* Image ALT Review Section */}
-      {images.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold">Image ALT Review:</h3>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            {images.map((img, index) => (
-              <div key={index} className="border p-2 rounded-lg">
-                <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
-                <p className="text-sm mt-1 text-gray-600"><strong>ALT:</strong> {img.alt}</p>
-              </div>
-            ))}
-          </div>
+{images.length > 0 && (
+  <div className="mt-6">
+    <h3 className="text-lg font-semibold">Image ALT Review:</h3>
+    <div className="grid grid-cols-2 gap-4 mt-2">
+      {images.map((img, index) => (
+        <div 
+          key={index} 
+          className={`border p-2 rounded-lg ${img.alt === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"}`}
+        >
+          <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
+          <p className="text-sm mt-1 text-gray-600">
+            <strong>ALT:</strong> {img.alt}
+          </p>
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
+
+
+
+
     </div>
   );
 }
