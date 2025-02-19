@@ -5,12 +5,25 @@ export default function Report({ report }) {
 
   const { score, violations = [], images = [] } = report;
   const [selectedImage, setSelectedImage] = useState(null);
+  const [filter, setFilter] = useState("none");
 
   const getColor = (score) => {
     if (score >= 90) return "bg-green-500";
     if (score >= 70) return "bg-yellow-500";
     return "bg-red-500";
   };
+
+  // Color Blindness Filters
+  const colorFilters = {
+    protanopia: "grayscale(15%) sepia(0.5) hue-rotate(-15deg) contrast(1.05)",
+    deuteranopia: "grayscale(15%) sepia(0.5) hue-rotate(-7deg) contrast(1.05)",
+    tritanopia: "grayscale(15%) sepia(0.5) hue-rotate(25deg) contrast(1.1)",
+    achromatopsia: "grayscale(80%)",
+    normal: "none"
+};
+
+
+
 
   return (
     <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
@@ -63,7 +76,10 @@ export default function Report({ report }) {
                 className={`border p-2 rounded-lg cursor-pointer ${
                   img.alt === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"
                 }`}
-                onClick={() => setSelectedImage(img)}
+                onClick={() => {
+                  setSelectedImage(img);
+                  setFilter("none"); // Reset filter on open
+                }}
               >
                 <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
                 <p className="text-sm mt-1 text-gray-600">
@@ -76,27 +92,42 @@ export default function Report({ report }) {
       )}
 
       {/* Image Preview Modal */}
-{selectedImage && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-    onClick={() => setSelectedImage(null)}
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-auto relative"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button className="absolute top-4 right-4 text-gray-600 text-xl" onClick={() => setSelectedImage(null)}>
-        ✖
-      </button>
-      <img 
-        src={selectedImage.src} 
-        alt={selectedImage.alt} 
-        className="max-w-full max-h-[80vh] mx-auto rounded-lg"
-      />
-      <p className="text-center text-gray-600 mt-4"><strong>ALT:</strong> {selectedImage.alt}</p>
-    </div>
-  </div>
-)}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h overflow-auto relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-4 right-4 text-gray-600 text-xl"
+              onClick={() => setSelectedImage(null)}
+            >
+              ✖
+            </button>
+            <img
+              src={selectedImage.src}
+              alt={selectedImage.alt}
+              className="max-w-full max-h-[80vh] mx-auto rounded-lg"
+              style={{ filter: colorFilters[filter] }}
+            />
+            <p className="text-center text-gray-600 mt-4">
+              <strong>ALT:</strong> {selectedImage.alt}
+            </p>
+
+            {/* Daltonism Filter Buttons */}
+            <div className="flex justify-center gap-2 mt-4">
+              <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setFilter("normal")}>R</button>
+              <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setFilter("protanopia")}>Prota</button>
+              <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setFilter("deuteranopia")}>Deute</button>
+              <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setFilter("tritanopia")}>Trita</button>
+              <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setFilter("achromatopsia")}>Achroma</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
