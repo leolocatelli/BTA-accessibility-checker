@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function Report({ report }) {
   if (!report) return null;
 
-  const { score, violations = [], images = [] } = report; // Ensure violations & images are always arrays
+  const { score, violations = [], images = [] } = report;
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const getColor = (score) => {
     if (score >= 90) return "bg-green-500";
@@ -52,28 +53,50 @@ export default function Report({ report }) {
       </div>
 
       {/* Image ALT Review Section */}
-{images.length > 0 && (
-  <div className="mt-6">
-    <h3 className="text-lg font-semibold">Image ALT Review:</h3>
-    <div className="grid grid-cols-2 gap-4 mt-2">
-      {images.map((img, index) => (
-        <div 
-          key={index} 
-          className={`border p-2 rounded-lg ${img.alt === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"}`}
-        >
-          <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
-          <p className="text-sm mt-1 text-gray-600">
-            <strong>ALT:</strong> {img.alt}
-          </p>
+      {images.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold">Image ALT Review:</h3>
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            {images.map((img, index) => (
+              <div
+                key={index}
+                className={`border p-2 rounded-lg cursor-pointer ${
+                  img.alt === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"
+                }`}
+                onClick={() => setSelectedImage(img)}
+              >
+                <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
+                <p className="text-sm mt-1 text-gray-600">
+                  <strong>ALT:</strong> {img.alt}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
+
+      {/* Image Preview Modal */}
+{selectedImage && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    onClick={() => setSelectedImage(null)}
+  >
+    <div
+      className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-auto relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button className="absolute top-4 right-4 text-gray-600 text-xl" onClick={() => setSelectedImage(null)}>
+        ✖
+      </button>
+      <img 
+        src={selectedImage.src} 
+        alt={selectedImage.alt} 
+        className="max-w-full max-h-[80vh] mx-auto rounded-lg"
+      />
+      <p className="text-center text-gray-600 mt-4"><strong>ALT:</strong> {selectedImage.alt}</p>
     </div>
   </div>
 )}
-
-
-
-
     </div>
   );
 }
