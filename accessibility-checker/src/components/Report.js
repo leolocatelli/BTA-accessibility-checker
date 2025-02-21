@@ -3,14 +3,18 @@ import ScoreBar from "./ScoreBar";
 import ViolationsList from "./ViolationsList";
 import ImageAltReview from "./ImageAltReview";
 import ImagePreviewModal from "./ImagePreviewModal";
+import VideoReview from "./VideoReview";
 
 export default function Report({ report }) {
   if (!report) return null;
 
-  const { score, violations = [], images = [] } = report;
+  // ✅ Ensure videos are included
+  const { score, violations = [], images = [], videos = [] } = report;
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [filter, setFilter] = useState("none");
   const [checkedImages, setCheckedImages] = useState({});
+  const [checkedVideos, setCheckedVideos] = useState({});
 
   const toggleCheck = (imgSrc) => {
     setCheckedImages((prev) => ({
@@ -22,10 +26,41 @@ export default function Report({ report }) {
   return (
     <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold mb-2">Accessibility Report</h2>
+
+      {/* Score Bar */}
       <ScoreBar score={score} />
+
+      {/* WCAG Violations */}
       <ViolationsList violations={violations} />
-      <ImageAltReview images={images} checkedImages={checkedImages} setCheckedImages={setCheckedImages} setSelectedImage={setSelectedImage} />
-      <ImagePreviewModal selectedImage={selectedImage} setSelectedImage={setSelectedImage} filter={filter} setFilter={setFilter} checkedImages={checkedImages} toggleCheck={toggleCheck} />
+
+      {/* Image ALT Review */}
+      {images.length > 0 && (
+        <ImageAltReview
+          images={images}
+          checkedImages={checkedImages}
+          setCheckedImages={setCheckedImages}
+          setSelectedImage={setSelectedImage}
+        />
+      )}
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        selectedImage={selectedImage}
+        setSelectedImage={setSelectedImage}
+        filter={filter}
+        setFilter={setFilter}
+        checkedImages={checkedImages}
+        toggleCheck={toggleCheck}
+      />
+
+      {/* ✅ Video Caption Review (Now inside return statement) */}
+      {videos.length > 0 && (
+        <VideoReview
+          videos={videos}
+          checkedVideos={checkedVideos}
+          setCheckedVideos={setCheckedVideos}
+        />
+      )}
     </div>
   );
 }

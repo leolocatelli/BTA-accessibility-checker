@@ -1,7 +1,9 @@
 import { analyzePageAccessibility } from "@/utils/analyzePageAccessibility";
 import { extractImages } from "@/utils/extractImages";
+import { extractVideos } from "@/utils/extractVideos"; // ✅ Import video extractor
 import { handleViolations } from "@/utils/handleViolations";
 import { calculateScore } from "@/utils/calculateScore";
+import { cleanupScreenshots } from "@/utils/cleanupScreenshots";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -17,29 +19,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing URL" });
     }
 
+    cleanupScreenshots(); // 🗑️ Cleanup old screenshots before running analysis
+
     console.log(`🔍 Starting accessibility analysis for: ${url}`);
 
-    // Launch Puppeteer and run Axe analysis
     const { browser, page, results } = await analyzePageAccessibility(url);
-
-    // Extract images from the page
     const images = await extractImages(page);
-
-    // Process WCAG violations and generate screenshots
+    const videos = await extractVideos(page); // ✅ Extract videos
     const violations = await handleViolations(page, results);
-
-    // Calculate accessibility score
     const score = calculateScore(results.violations);
 
-    // Close browser session
     await browser.close();
 
-    // Send response with analysis results
     res.status(200).json({
       success: true,
       url,
       score,
       images,
+      videos, // ✅ Include videos in response
       violations,
     });
   } catch (error) {
