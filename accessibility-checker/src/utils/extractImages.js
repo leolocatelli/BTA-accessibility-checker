@@ -1,9 +1,9 @@
 export async function extractImages(page) {
-  console.log("📸 Extracting images...");
+  // console.log(" Extracting images...");
 
   return await page.evaluate(async () => {
     // Wait until all images are loaded
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const seenImages = new Set();
 

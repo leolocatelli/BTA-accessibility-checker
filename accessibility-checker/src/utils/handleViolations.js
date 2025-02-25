@@ -27,14 +27,26 @@ export async function handleViolations(page, results) {
           const boundingBox = await el.boundingBox();
 
           if (boundingBox) {
+            // 🟢 Define padding for better context (expands area)
+            const PADDING_X = 600; // Expands width
+            const PADDING_Y = 150; // Expands height
+
+            // 🟢 Get viewport size to avoid out-of-bounds errors
+            const viewport = await page.viewport();
+
+            // 🟢 Expand screenshot area safely
+            const clip = {
+              x: Math.max(boundingBox.x - PADDING_X, 0),
+              y: Math.max(boundingBox.y - PADDING_Y, 0),
+              width: Math.min(boundingBox.width + PADDING_X * 2, viewport.width - boundingBox.x),
+              height: Math.min(boundingBox.height + PADDING_Y * 2, viewport.height - boundingBox.y),
+            };
+
+            console.log(`📸 Capturing screenshot for ${node.target[0]}`, clip);
+
             await page.screenshot({
               path: screenshotPath,
-              clip: {
-                x: boundingBox.x,
-                y: boundingBox.y,
-                width: Math.min(boundingBox.width, 500),
-                height: Math.min(boundingBox.height, 300),
-              },
+              clip,
             });
 
             affectedElements.push({
@@ -51,7 +63,7 @@ export async function handleViolations(page, results) {
               } catch (err) {
                 console.error(`❌ Failed to delete ${screenshotPath}:`, err);
               }
-            }, 600000); // Deletes file after 10min
+            }, 60000); // Deletes file after 1 minute
           }
         } catch (error) {
           console.error("❌ Error capturing screenshot:", error);
