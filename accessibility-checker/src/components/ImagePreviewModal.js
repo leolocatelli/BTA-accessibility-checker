@@ -7,10 +7,10 @@ export default function ImagePreviewModal({
     toggleCheck,
   }) {
     const colorFilters = {
-      protanopia: "grayscale(15%) sepia(0.5) hue-rotate(-15deg) contrast(1.05)",
-      deuteranopia: "grayscale(30%) sepia(0.5) hue-rotate(-7deg) contrast(1.05)",
-      tritanopia: "grayscale(15%) sepia(0.5) hue-rotate(25deg) contrast(1.1)",
-      achromatopsia: "grayscale(70%)",
+      protanopia: "grayscale(50%) sepia(0.5) hue-rotate(-15deg) contrast(1.05)",
+      deuteranopia: "grayscale(50%) sepia(0.5) hue-rotate(-7deg) contrast(1.05)",
+      tritanopia: "grayscale(50%) sepia(0.5) hue-rotate(25deg) contrast(1.1)",
+      achromatopsia: "grayscale(90%)",
       normal: "none",
     };
   
