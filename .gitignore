@@ -32,3 +32,5 @@ node_modules/
 
 Anotations
 
+src/utils/measurePageSize.js
+src/utils/measurePageSize*.js

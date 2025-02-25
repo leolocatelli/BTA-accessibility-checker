@@ -1,9 +1,10 @@
 import { analyzePageAccessibility } from "@/utils/analyzePageAccessibility";
 import { extractImages } from "@/utils/extractImages";
-import { extractVideos } from "@/utils/extractVideos"; // ✅ Extract videos
+import { extractVideos } from "@/utils/extractVideos";
 import { handleViolations } from "@/utils/handleViolations";
 import { calculateScore } from "@/utils/calculateScore";
 import { cleanupScreenshots } from "@/utils/cleanupScreenshots";
+import { measurePageSize } from "@/utils/measurePageSize"; // ✅ Now using Cloudflare API
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -25,6 +26,9 @@ export default async function handler(req, res) {
 
     const { browser, page, results } = await analyzePageAccessibility(url);
 
+    // ✅ Get the page size using Cloudflare API
+    const pageSize = await measurePageSize(url) || { bytes: 0, kb: "0.00", mb: "0.00" };
+
     const images = await extractImages(page);
     const videos = await extractVideos(page);
     const violations = await handleViolations(page, results);
@@ -36,8 +40,9 @@ export default async function handler(req, res) {
       success: true,
       url,
       score,
+      pageSize, // ✅ Now correctly included
       images,
-      videos, // ✅ Include videos in response
+      videos,
       violations,
     });
   } catch (error) {

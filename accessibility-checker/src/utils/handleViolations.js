@@ -26,20 +26,17 @@ export async function handleViolations(page, results) {
           const screenshotPath = path.join(screenshotDir, `${Date.now()}.png`);
           const boundingBox = await el.boundingBox();
 
-          if (boundingBox) {
-            // 🟢 Define padding for better context (expands area)
-            const PADDING_X = 600; // Expands width
-            const PADDING_Y = 150; // Expands height
-
-            // 🟢 Get viewport size to avoid out-of-bounds errors
+          if (boundingBox && boundingBox.width > 0 && boundingBox.height > 0) {
+            // 🟢 Expand capture area for better context
+            const PADDING_X = 600;
+            const PADDING_Y = 150;
             const viewport = await page.viewport();
 
-            // 🟢 Expand screenshot area safely
             const clip = {
               x: Math.max(boundingBox.x - PADDING_X, 0),
               y: Math.max(boundingBox.y - PADDING_Y, 0),
-              width: Math.min(boundingBox.width + PADDING_X * 2, viewport.width - boundingBox.x),
-              height: Math.min(boundingBox.height + PADDING_Y * 2, viewport.height - boundingBox.y),
+              width: Math.max(Math.min(boundingBox.width + PADDING_X * 2, viewport.width - boundingBox.x), 100),
+              height: Math.max(Math.min(boundingBox.height + PADDING_Y * 2, viewport.height - boundingBox.y), 100),
             };
 
             console.log(`📸 Capturing screenshot for ${node.target[0]}`, clip);
