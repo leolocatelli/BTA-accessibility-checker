@@ -1,9 +1,10 @@
 import { analyzePageAccessibility } from "@/utils/analyzePageAccessibility";
 import { extractImages } from "@/utils/extractImages";
-import { extractVideos } from "@/utils/extractVideos"; // ✅ Extract videos
+import { extractVideos } from "@/utils/extractVideos";
 import { handleViolations } from "@/utils/handleViolations";
 import { calculateScore } from "@/utils/calculateScore";
 import { cleanupScreenshots } from "@/utils/cleanupScreenshots";
+import { extractText } from "@/utils/extractText";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -28,6 +29,7 @@ export default async function handler(req, res) {
     const images = await extractImages(page);
     const videos = await extractVideos(page);
     const violations = await handleViolations(page, results);
+    const textContent = await extractText(page);
     const score = calculateScore(results.violations);
 
     await browser.close();
@@ -37,7 +39,8 @@ export default async function handler(req, res) {
       url,
       score,
       images,
-      videos, // ✅ Include videos in response
+      videos,
+      textContent,
       violations,
     });
   } catch (error) {
