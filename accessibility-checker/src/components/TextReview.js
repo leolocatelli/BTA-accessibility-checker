@@ -6,11 +6,11 @@ export default function TextReview({ texts, checkedTexts, setCheckedTexts }) {
   const toggleCheck = (index) => {
     setCheckedTexts((prev) => ({
       ...prev,
-      [index]: !prev[index], // Toggle state (checked/unchecked)
+      [index]: !prev[index], // ✅ Alterna entre revisado/não revisado
     }));
   };
 
-  // ✅ Hold "T" + Click to Mark All Texts
+  // ✅ Tecla "T" + Clique para marcar todos os textos
   useEffect(() => {
     const handleKeyPress = (event) => {
       if (event.key.toLowerCase() === "t") {
@@ -57,14 +57,14 @@ export default function TextReview({ texts, checkedTexts, setCheckedTexts }) {
           >
             <p className="text-gray-800">{text}</p>
 
-            {/* ✅ Review Button */}
+            {/* ✅ Botão de revisão */}
             <button
-              onClick={() => toggleCheck(index)}
               className={`mt-2 px-4 py-2 text-sm font-semibold rounded-lg shadow ${
                 checkedTexts[index] ? "bg-green-600 text-white" : "bg-yellow-500 text-gray-800"
               }`}
+              onClick={() => toggleCheck(index)}
             >
-              {checkedTexts[index] ? "✅ Reviewed" : "🔍 Mark as Reviewed"}
+              {checkedTexts[index] ? "✅ Reviewed" : "✔ Mark as Reviewed"}
             </button>
           </li>
         ))}
