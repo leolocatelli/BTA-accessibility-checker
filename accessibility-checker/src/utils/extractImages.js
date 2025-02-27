@@ -1,6 +1,4 @@
 export async function extractImages(page) {
-  // console.log(" Extracting images...");
-
   return await page.evaluate(async () => {
     // Wait until all images are loaded
     await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -13,7 +11,7 @@ export async function extractImages(page) {
         if (!img) return null;
 
         let src = img.src || img.getAttribute("data-src") || "(No image source)";
-        let alt = img.alt || "(No ALT text)";
+        let alt = img.alt.trim() || "(No ALT text)";
 
         const key = `${src}-${alt}`;
         if (!seenImages.has(key)) {
