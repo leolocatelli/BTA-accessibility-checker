@@ -50,12 +50,11 @@ export default function Home() {
       </div>
 
       {/* 🔹 Content for Each Tab */}
-      <div className="mt-6">
+      <div className="p-6 max-w-3xl mx-auto">
         {activeTab === "accessibility" && (
           <div>
-            {/* <h2 className="text-xl font-semibold text-center mb-4">🔍 Accessibility Checker</h2> */}
-            <span className="mb-4"></span>
-            <div className="flex flex-col gap-4 p-6 mt-10">
+            <h2 className="text-xl font-semibold text-center mb-4">🔍 Accessibility Checker</h2>
+            <div className="flex flex-col gap-4 p-6 ">
               <InputField url={url} setUrl={setUrl} />
               <SubmitButton onClick={checkAccessibility} loading={loading} />
             </div>

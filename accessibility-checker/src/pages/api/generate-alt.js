@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import fetch from "node-fetch";
+import sharp from "sharp";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -9,47 +11,52 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { imageUrls } = req.body;
-  
-  if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
-    return res.status(400).json({ error: "No image URLs provided." });
+  const { imageUrl, charLimit = 150 } = req.body; // Ideal charLimit = 400
+
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: "No image URL provided." });
   }
 
   try {
-    const results = await Promise.all(
-      imageUrls.map(async (url) => {
-        console.log(`📥 Sending image to GPT-4 Vision: ${url}`);
+    console.log(`📥 Downloading & resizing image: ${imageUrl}`);
 
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "system",
-              content: "You are an AI assistant specialized in generating detailed image descriptions for accessibility you don't need to be too long we need to work with a ideal number of character not bigger than 100.",
-            },
-            {
-              role: "user",
-              content: [
-                { type: "text", text: "Describe this image in detail:" },
-                { type: "image_url", image_url: { url } },
-              ],
-            },
+    // Download Image from URL
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error("Failed to download image.");
+
+    const imageBuffer = await response.buffer();
+
+    // Resize Image to 512px Width (Maintain Aspect Ratio)
+    const resizedImageBuffer = await sharp(imageBuffer).resize({ width: 512 }).toBuffer();
+    const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString("base64")}`;
+
+    console.log(`📤 Sending resized image to GPT-4o Vision`);
+
+    // Send Image to OpenAI GPT-4o Vision
+    const responseAI = await openai.chat.completions.create({
+      model: "gpt-4o", // ✅ Use GPT-4o (supports images)
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI that generates concise image descriptions. Provide an alt text under ${charLimit} characters.`,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image in a concise way:" },
+            { type: "image_url", image_url: { url: base64Image } },
           ],
-          max_tokens: 200,
-        });
+        },
+      ],
+      max_tokens: 100, // ✅ Keep max tokens low to reduce costs ideal max_tokens = 300
+    });
 
-        console.log(`✅ API Response:`, response.choices[0]?.message?.content);
+    console.log(`✅ API Response:`, responseAI.choices[0]?.message?.content);
 
-        return {
-          url,
-          altText: response.choices[0]?.message?.content || "No ALT text generated",
-        };
-      })
-    );
-
-    return res.status(200).json({ results });
+    return res.status(200).json({ altText: responseAI.choices[0]?.message?.content || "No ALT text generated" });
   } catch (error) {
-    console.error("❌ GPT-4 Vision API Error:", error);
+    console.error("❌ OpenAI API Error:", error);
     return res.status(500).json({ error: "Failed to generate ALT text.", details: error.message });
   }
 }

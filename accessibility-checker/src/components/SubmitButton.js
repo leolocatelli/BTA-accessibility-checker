@@ -5,7 +5,7 @@ export default function SubmitButton({ onClick, loading }) {
     <button
       onClick={onClick}
       disabled={loading}
-      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+      className="mt-4 w-full px-4 py-3 text-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center"
     >
       {loading ? "Checking..." : "Check Accessibility"}
     </button>
