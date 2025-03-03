@@ -25,7 +25,7 @@ export default async function handler(req, res) {
           messages: [
             {
               role: "system",
-              content: "You are an AI assistant specialized in generating detailed image descriptions for accessibility.",
+              content: "You are an AI assistant specialized in generating detailed image descriptions for accessibility you don't need to be too long we need to work with a ideal number of character not bigger than 100.",
             },
             {
               role: "user",

@@ -4,11 +4,13 @@ import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import SubmitButton from "@/components/SubmitButton";
 import Report from "@/components/Report";
+import ImageAltGenerator from "@/components/ImageAltGenerator";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("accessibility"); // Default to Accessibility Checker
 
   const checkAccessibility = async () => {
     setLoading(true);
@@ -28,21 +30,50 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 mt-40 max-w-3xl mx-auto bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-4 p-2 text-center">Accessibility Checker</h1>
-      
-      {/* Input and Button Section */}
-      <div className="flex flex-col gap-4">
-        <InputField url={url} setUrl={setUrl} />
-        <SubmitButton onClick={checkAccessibility} loading={loading} />
+    <div className="p-6 mt-20 max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
+      {/* <h1 className="text-3xl font-bold mb-6 text-center">🛠️ Accessibility Tools</h1> */}
+
+      {/* 🔹 Tabs Navigation */}
+      <div className="flex justify-center border-b">
+        <button
+          className={`py-2 px-6 text-lg font-semibold ${activeTab === "accessibility" ? "border-b-4 border-blue-500 text-blue-600" : "text-gray-500"}`}
+          onClick={() => setActiveTab("accessibility")}
+        >
+          Accessibility Checker
+        </button>
+        <button
+          className={`py-2 px-6 text-lg font-semibold ${activeTab === "image-alt" ? "border-b-4 border-blue-500 text-blue-600" : "text-gray-500"}`}
+          onClick={() => setActiveTab("image-alt")}
+        >
+          Image ALT Generator
+        </button>
       </div>
 
-      {/* Report Section */}
-      {report && (
-        <div className="mt-6">
-          <Report report={report} />
-        </div>
-      )}
+      {/* 🔹 Content for Each Tab */}
+      <div className="mt-6">
+        {activeTab === "accessibility" && (
+          <div>
+            {/* <h2 className="text-xl font-semibold text-center mb-4">🔍 Accessibility Checker</h2> */}
+            <span className="mb-4"></span>
+            <div className="flex flex-col gap-4 p-6 mt-10">
+              <InputField url={url} setUrl={setUrl} />
+              <SubmitButton onClick={checkAccessibility} loading={loading} />
+            </div>
+            {report && (
+              <div className="mt-6">
+                <Report report={report} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "image-alt" && (
+          <div>
+            {/* <h2 className="text-xl font-semibold text-center mb-4">🖼️ Image ALT Generator</h2> */}
+            <ImageAltGenerator />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
