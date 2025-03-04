@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, XCircle, AlertTriangle } from "lucide-react";
 
-const altCache = {}; // 🔹 In-memory cache (resets on refresh)
+const altCache = {}; // 🔹 Cache to avoid redundant API calls
 
 export default function ImageAltGenerator() {
   const [imageUrls, setImageUrls] = useState([]);
   const [altResults, setAltResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [warning, setWarning] = useState(""); // 🔹 Stores the duplicate warning message
+  const [warning, setWarning] = useState(""); // 🔹 Warning for duplicate images
   const CHARACTER_LIMIT = 150; // 🔹 Max ALT text length
 
   // Handle URL Input (Prevents Duplicates)
   const handleUrlInput = (e) => {
     const urls = e.target.value.split("\n").map((url) => url.trim()).filter((url) => url);
-    
+
     // 🔹 Find duplicates
     const duplicates = urls.filter((url) => imageUrls.includes(url));
 
@@ -26,6 +26,11 @@ export default function ImageAltGenerator() {
     // 🔹 Add only unique URLs
     const uniqueUrls = [...new Set([...imageUrls, ...urls])];
     setImageUrls(uniqueUrls);
+  };
+
+  // 🔹 Remove Image from the List
+  const removeImage = (urlToRemove) => {
+    setImageUrls((prevUrls) => prevUrls.filter((url) => url !== urlToRemove));
   };
 
   // Generate ALT Texts (Uses Cache)
@@ -68,8 +73,8 @@ export default function ImageAltGenerator() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold text-center mb-4">🖼️ Image ALT Generator</h2>
+    <div className="p-6 max-w-3xl mx-auto">
+      {/* <h2 className="text-xl font-semibold text-center mb-4">🖼️ Image ALT Generator</h2> */}
 
       {/* URL Input */}
       <textarea
@@ -92,7 +97,15 @@ export default function ImageAltGenerator() {
           <h3 className="text-lg font-semibold mb-2">Uploaded Images:</h3>
           <div className="flex flex-wrap gap-4">
             {imageUrls.map((url, index) => (
-              <img key={index} src={url} alt="Uploaded Preview" className="w-20 h-20 object-cover rounded-md border shadow" />
+              <div key={index} className="relative">
+                <img src={url} alt="Uploaded Preview" className="w-auto h-32 object-cover rounded-md border shadow" />
+                <button
+                  onClick={() => removeImage(url)}
+                  className="absolute top-0 right-0 bg-gray-700/40 text-white rounded-full p-1 hover:bg-gray-900/50"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
             ))}
           </div>
         </div>
