@@ -5,42 +5,50 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
 
   // ✅ Define background colors based on ALT text presence
   const getColor = (img) => {
-    if (checkedImages[img.src]) return "bg-green-200"; // ✅ Marked as OK
+    if (checkedImages[img.src]) return "bg-green-200"; // ✅ Marked as OK (Checked)
     return img.alt === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"; // 🔴 No ALT = Red | 🟡 ALT present = Yellow
   };
 
-  // ✅ Function to toggle image check state
+  // ✅ Toggle check state for a single image
   const toggleCheck = (imgSrc) => {
     setCheckedImages((prev) => ({
       ...prev,
-      [imgSrc]: true, // ✅ Mark this image as checked
+      [imgSrc]: true, // ✅ Mark as checked (only yellow)
     }));
   };
 
-  // ✅ Reintroduzido: Segurar "i" + Clique para marcar todas as imagens
+  // ✅ Remove image from the review list
+  const removeImage = (imgSrc) => {
+    setCheckedImages((prev) => {
+      const updatedChecked = { ...prev };
+      return updatedChecked;
+    });
+  };
+
+  // ✅ "Hold 'i' + Click" to check all yellow images
   useEffect(() => {
+    const markAllYellowImagesChecked = () => {
+      setCheckedImages((prev) => {
+        const updatedChecked = { ...prev };
+        images.forEach((img) => {
+          if (img.alt !== "(No ALT text)" && !prev[img.src]) { 
+            updatedChecked[img.src] = true; // ✅ Only yellow images get checked
+          }
+        });
+        return updatedChecked;
+      });
+    };
+
     const handleKeyDown = (event) => {
       if (event.key.toLowerCase() === "i") {
-        document.addEventListener("click", markAllImagesChecked);
+        document.addEventListener("mousedown", markAllYellowImagesChecked);
       }
     };
 
     const handleKeyUp = (event) => {
       if (event.key.toLowerCase() === "i") {
-        document.removeEventListener("click", markAllImagesChecked);
+        document.removeEventListener("mousedown", markAllYellowImagesChecked);
       }
-    };
-
-    const markAllImagesChecked = () => {
-      setCheckedImages((prev) => {
-        const updatedChecked = { ...prev };
-        images.forEach((img) => {
-          if (!prev[img.src]) {
-            updatedChecked[img.src] = true;
-          }
-        });
-        return updatedChecked;
-      });
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -49,7 +57,7 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
-      document.removeEventListener("click", markAllImagesChecked);
+      document.removeEventListener("mousedown", markAllYellowImagesChecked);
     };
   }, [images, setCheckedImages]);
 
@@ -60,12 +68,14 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
         {images.map((img, index) => (
           <div
             key={index}
-            className={`border p-2 rounded-lg cursor-pointer ${getColor(img)}`}
+            className={`relative border p-2 rounded-lg cursor-pointer ${getColor(img)}`}
             onClick={() => setSelectedImage(img)}
           >
+            {/* 🖼️ Image Preview */}
             <img src={img.src} alt={img.alt} className="w-full h-28 object-cover rounded-md" />
             <p className="text-sm text-gray-700 mt-2"><strong>ALT:</strong> {img.alt}</p>
 
+            {/* ✅ Mark as OK Button */}
             {img.alt !== "(No ALT text)" && !checkedImages[img.src] && (
               <button
                 className="mt-2 px-3 py-1 bg-green-400 text-white rounded hover:bg-green-500"
@@ -77,6 +87,17 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
                 ✔ Ok
               </button>
             )}
+
+            {/* ❌ Remove Image Button */}
+            {/* <button
+              className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center hover:bg-red-600"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeImage(img.src);
+              }}
+            >
+              ✕
+            </button> */}
           </div>
         ))}
       </div>

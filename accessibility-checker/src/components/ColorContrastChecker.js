@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 export default function ColorContrastChecker() {
-  const [textColor, setTextColor] = useState("#000000");
-  const [bgColor, setBgColor] = useState("#ffffff");
+  const [textColor, setTextColor] = useState("#ffffff");
+  const [bgColor, setBgColor] = useState("#000000");
   const [customText, setCustomText] = useState("Your text preview here");
 
   // Function to calculate contrast ratio

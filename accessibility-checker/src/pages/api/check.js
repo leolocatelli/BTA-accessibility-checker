@@ -1,6 +1,7 @@
 import { analyzePageAccessibility } from "@/utils/analyzePageAccessibility";
 import { extractImages } from "@/utils/extractImages";
 import { extractVideos } from "@/utils/extractVideos";
+// import { extractLinks } from "@/utils/extractLinks"; // ✅ Import new extractLinks function
 import { handleViolations } from "@/utils/handleViolations";
 import { calculateScore } from "@/utils/calculateScore";
 import { cleanupScreenshots } from "@/utils/cleanupScreenshots";
@@ -28,6 +29,7 @@ export default async function handler(req, res) {
 
     const images = await extractImages(page);
     const videos = await extractVideos(page);
+    // const links = await extractLinks(page); // ✅ Extract links
     const violations = await handleViolations(page, results);
     const textContent = await extractText(page);
     const score = calculateScore(results.violations);
@@ -40,6 +42,7 @@ export default async function handler(req, res) {
       score,
       images,
       videos,
+      // links, // ✅ Send links in response
       textContent,
       violations,
     });

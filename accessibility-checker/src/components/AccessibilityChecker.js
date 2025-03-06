@@ -1,7 +1,10 @@
+"use client";
+
 import { useState } from "react";
-import InputField from "./InputField";
-import SubmitButton from "./SubmitButton";
-import Report from "./Report";
+import InputField from "@/components/InputField";
+import SubmitButton from "@/components/SubmitButton";
+import Report from "@/components/Report";
+import LinkExtractor from "@/components/LinkExtractor"; // ✅ Import LinkExtractor
 
 export default function AccessibilityChecker() {
   const [url, setUrl] = useState("");
@@ -26,12 +29,18 @@ export default function AccessibilityChecker() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <InputField url={url} setUrl={setUrl} />
-      <SubmitButton onClick={checkAccessibility} loading={loading} />
+    <div className="p-6">
+      <div className="flex flex-col gap-4">
+        <InputField url={url} setUrl={setUrl} />
+        <SubmitButton onClick={checkAccessibility} loading={loading} />
+      </div>
+
       {report && (
         <div className="mt-6">
           <Report report={report} />
+          <div className="mt-6">
+            <LinkExtractor links={report.links} /> {/* ✅ Display links */}
+          </div>
         </div>
       )}
     </div>
