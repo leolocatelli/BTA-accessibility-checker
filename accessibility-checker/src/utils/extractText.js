@@ -12,19 +12,19 @@ export async function extractText(page, minCharLength = 50) {
         const texts = await page.evaluate((minLength, ignoredClasses) => {
             const uniqueTexts = new Set(); // 🚀 Avoid duplicate texts
 
-            return Array.from(document.querySelectorAll("p"))
-                .filter((p) => {
-                    // 🔍 Check if <p> or any parent <div> has an ignored class
-                    let parent = p;
+            return Array.from(document.querySelectorAll("p, font")) // ✅ Extract from <p> and <font>
+                .filter((el) => {
+                    // 🔍 Check if element or any parent <div> has an ignored class
+                    let parent = el;
                     while (parent) {
                         if (parent.classList && ignoredClasses.some((cls) => parent.classList.contains(cls))) {
-                            return false; // ❌ Ignore this <p> and all its children
+                            return false; // ❌ Ignore this element and all its children
                         }
                         parent = parent.parentElement; // Move up the DOM tree
                     }
                     return true; // ✅ Keep if no ignored classes found in ancestors
                 })
-                .map((p) => p.innerText.trim())
+                .map((el) => el.innerText.trim()) // 🔹 Extract text content
                 .filter((text) => {
                     // 🔴 Ignore short texts
                     if (text.length < minLength) return false;

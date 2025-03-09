@@ -1,15 +1,15 @@
-"use client";
 
+"use client"; // ✅ Mark as a client component
 import { useState } from "react";
+import { useReport } from "@/context/ReportContext"; // ✅ Import useReport hook
 import InputField from "@/components/InputField";
 import SubmitButton from "@/components/SubmitButton";
 import Report from "@/components/Report";
-import LinkExtractor from "@/components/LinkExtractor"; // ✅ Import LinkExtractor
+import { Loader2 } from "lucide-react";
 
 export default function AccessibilityChecker() {
+  const { report, setReport, loading, setLoading } = useReport(); // ✅ Use global state
   const [url, setUrl] = useState("");
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const checkAccessibility = async () => {
     setLoading(true);
@@ -29,8 +29,18 @@ export default function AccessibilityChecker() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col gap-4">
+    <div className="relative">
+      {/* Full-Screen Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-12 h-12 animate-spin text-white" />
+            <p className="mt-3 text-white font-semibold">Checking accessibility...</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 p-6">
         <InputField url={url} setUrl={setUrl} />
         <SubmitButton onClick={checkAccessibility} loading={loading} />
       </div>
@@ -38,9 +48,6 @@ export default function AccessibilityChecker() {
       {report && (
         <div className="mt-6">
           <Report report={report} />
-          <div className="mt-6">
-            <LinkExtractor links={report.links} /> {/* ✅ Display links */}
-          </div>
         </div>
       )}
     </div>

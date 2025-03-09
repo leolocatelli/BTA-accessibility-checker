@@ -1,7 +1,7 @@
 export default function ScoreBar({ score }) {
     return (
       <div className="mb-4">
-        <p className="font-bold">Score: {score}/100</p>
+      <p className="font-bold text-right text-2xl"> <span className="text-xl">Score:</span>{score}/100</p>
         <div className="w-full bg-gray-300 rounded-full h-6">
           <div
             className={`h-6 rounded-full ${

@@ -21,7 +21,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing URL" });
     }
 
-    cleanupScreenshots(); // 🗑️ Clean old screenshots before analysis
+    // cleanupScreenshots(); // 🗑️ Clean old screenshots before analysis
+
+    if (!global.lastCheckedUrl || global.lastCheckedUrl !== url) {
+      cleanupScreenshots(); // 🗑️ Clean screenshots only when checking a new URL
+      global.lastCheckedUrl = url; // ✅ Store the last checked URL
+  }
 
     console.log(`🔍 Starting accessibility analysis for: ${url}`);
 

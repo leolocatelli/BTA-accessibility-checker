@@ -1,3 +1,4 @@
+'use client'; // ✅ Mark as a client component
 import { useState } from "react";
 
 export default function ColorContrastChecker() {
