@@ -32,3 +32,4 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   // 🔹 Ensure the score is within the valid range (0-100)
   return Math.min(100, Math.max(0, Math.round(score)));
 }
+

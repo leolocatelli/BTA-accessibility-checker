@@ -8,7 +8,7 @@ export function cleanupScreenshots() {
 
   const files = fs.readdirSync(screenshotDir);
   const now = Date.now();
-  const EXPIRATION_TIME = 24 * 60 * 60 * 6000; // 24 hours
+  const EXPIRATION_TIME = 1 * 60 * 60 * 1000; // 1 hour
 
   files.forEach((file) => {
     const filePath = path.join(screenshotDir, file);
