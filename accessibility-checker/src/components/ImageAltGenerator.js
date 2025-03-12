@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Loader2, XCircle, AlertTriangle } from "lucide-react";
 
 const altCache = {}; // 🔹 Cache to avoid redundant API calls
+const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/"; // 🔹 Base URL for partial inputs
 
 export default function ImageAltGenerator() {
   const [imageUrls, setImageUrls] = useState([]);
@@ -11,12 +12,19 @@ export default function ImageAltGenerator() {
   const [warning, setWarning] = useState(""); // 🔹 Warning for duplicate images
   const CHARACTER_LIMIT = 150; // 🔹 Max ALT text length
 
-  // Handle URL Input (Prevents Duplicates)
+  // Handle URL Input (Prevents Duplicates & Auto-Formats Partial Inputs)
   const handleUrlInput = (e) => {
-    const urls = e.target.value.split("\n").map((url) => url.trim()).filter((url) => url);
+    const rawInputs = e.target.value
+      .split("\n")
+      .map((url) => url.trim())
+      .filter((url) => url);
+
+    const processedUrls = rawInputs.map((url) =>
+      url.startsWith("http://") || url.startsWith("https://") ? url : `${BASE_URL}${url}`
+    );
 
     // 🔹 Find duplicates
-    const duplicates = urls.filter((url) => imageUrls.includes(url));
+    const duplicates = processedUrls.filter((url) => imageUrls.includes(url));
 
     if (duplicates.length > 0) {
       setWarning("⚠️ Some images were already added and were skipped."); // Show warning message
@@ -25,7 +33,7 @@ export default function ImageAltGenerator() {
     }
 
     // 🔹 Add only unique URLs
-    const uniqueUrls = [...new Set([...imageUrls, ...urls])];
+    const uniqueUrls = [...new Set([...imageUrls, ...processedUrls])];
     setImageUrls(uniqueUrls);
   };
 
@@ -41,7 +49,7 @@ export default function ImageAltGenerator() {
     setAltResults([]);
 
     const newResults = [];
-    
+
     for (const url of imageUrls) {
       if (altCache[url]) {
         newResults.push({ url, altText: altCache[url] }); // 🔹 Use cache if available
@@ -75,13 +83,11 @@ export default function ImageAltGenerator() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      {/* <h2 className="text-xl font-semibold text-center mb-4">🖼️ Image ALT Generator</h2> */}
-
       {/* URL Input */}
       <textarea
         rows="3"
         className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300"
-        placeholder="Paste image URLs here (one per line)"
+        placeholder="Paste image URLs or image codes here (one per line)"
         onChange={handleUrlInput}
       />
 
