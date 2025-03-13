@@ -141,7 +141,7 @@ export default function ImageAltReview({
             <p className="text-xs text-gray-500 mt-1">
               <strong>Size:</strong>{" "}
               {imageSizes[img.src]
-                ? `${(parseFloat(imageSizes[img.src]) * 1.0645).toFixed(2)} KB`
+                ? `${(parseFloat(imageSizes[img.src]) * 1.0).toFixed(2)} KB`
                 : "Fetching..."}
             </p>
 
