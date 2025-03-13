@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore all screenshots but keep the folder
+screenshots/*
+!screenshots/.gitkeep

@@ -82,14 +82,14 @@ export async function handleViolations(page, results) {
             });
 
             // Delete screenshot after 1 minute
-            setTimeout(() => {
-              try {
-                fs.unlinkSync(screenshotPath);
-                console.log(`🗑️ Deleted screenshot: ${screenshotPath}`);
-              } catch (err) {
-                console.error(`❌ Failed to delete ${screenshotPath}:`, err);
-              }
-            }, 60000);
+            // setTimeout(() => {
+            //   try {
+            //     fs.unlinkSync(screenshotPath);
+            //     console.log(`🗑️ Deleted screenshot: ${screenshotPath}`);
+            //   } catch (err) {
+            //     console.error(`❌ Failed to delete ${screenshotPath}:`, err);
+            //   }
+            // }, 60000);
           }
         } catch (error) {
           console.error("❌ Error capturing screenshot:", error);
