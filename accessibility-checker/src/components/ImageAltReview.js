@@ -1,7 +1,41 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function ImageAltReview({ images, checkedImages, setCheckedImages, setSelectedImage }) {
-  if (!images.length) return null;
+export default function ImageAltReview({
+  images,
+  checkedImages,
+  setCheckedImages,
+  setSelectedImage,
+}) {
+  const [imageSizes, setImageSizes] = useState({});
+
+  // ✅ Fetch image sizes from API
+  useEffect(() => {
+    const fetchSizes = async () => {
+      const sizes = { ...imageSizes };
+
+      for (const img of images) {
+        if (!img.src || sizes[img.src]) continue; // Skip if already fetched
+
+        try {
+          const response = await fetch("/api/get-image-size", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageUrl: img.src }),
+          });
+
+          const data = await response.json();
+          sizes[img.src] = data.size || "N/A";
+        } catch (error) {
+          console.error(`❌ Failed to get size for ${img.src}:`, error);
+          sizes[img.src] = "N/A";
+        }
+      }
+
+      setImageSizes(sizes);
+    };
+
+    fetchSizes();
+  }, [images]);
 
   // ✅ Define background colors based on ALT text presence
   const getColor = (img) => {
@@ -9,32 +43,31 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
     return img.alt?.trim() === "(No ALT text)" ? "bg-red-200" : "bg-yellow-100"; // 🔴 No ALT = Red | 🟡 ALT present = Yellow
   };
 
-  // ✅ Function to toggle image check state (Only for yellow images)
+  // ✅ Toggle image check state (Only for yellow images)
   const toggleCheck = (img) => {
-    if (img.alt?.trim() === "(No ALT text)") return; // ❌ Prevent checking red images
+    if (img.alt?.trim() === "(No ALT text)") return; // ❌ Cannot mark red images as OK
 
     setCheckedImages((prev) => ({
       ...prev,
-      [img.src]: true, // ✅ Mark as checked (only for yellow images)
+      [img.src]: true, // ✅ Mark as checked
     }));
   };
 
-  // ✅ Function to copy the image URL to clipboard
+  // ✅ Copy the image URL to clipboard
   const copyToClipboard = async (text) => {
     if (!navigator.clipboard) {
       alert("Clipboard API not available. Please copy manually.");
       return;
     }
-  
+
     try {
       await navigator.clipboard.writeText(text);
-      alert("Image URL copied to clipboard! 📋");
+      // alert("Image URL copied to clipboard! 📋");
     } catch (error) {
       console.error("❌ Failed to copy:", error);
       alert("Failed to copy. Please try manually.");
     }
   };
-  
 
   // ✅ "Hold 'i' + Click" to check all yellow images (ENSURING RED IMAGES ARE NOT SELECTED)
   useEffect(() => {
@@ -58,7 +91,7 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
           const updatedChecked = { ...prev };
 
           images.forEach((img) => {
-            if (img.alt?.trim() !== "(No ALT text)" && !prev[img.src]) { 
+            if (img.alt?.trim() !== "(No ALT text)" && !prev[img.src]) {
               updatedChecked[img.src] = true; // ✅ Only yellow images get checked
             }
           });
@@ -86,38 +119,57 @@ export default function ImageAltReview({ images, checkedImages, setCheckedImages
         {images.map((img, index) => (
           <div
             key={index}
-            className={`relative border p-2 gap-3 rounded-lg cursor-pointer  ${getColor(img)}`}
+            className={`relative border p-2 gap-3 rounded-lg cursor-pointer ${getColor(
+              img
+            )}`}
             onClick={() => setSelectedImage(img)}
           >
             {/* 🖼️ Image Preview */}
-            <img src={img.src} alt={img.alt} className="w-full h-28 object-cover rounded-md" />
-            <p className="text-sm text-gray-700 mt-2"><strong>ALT:</strong> {img.alt}</p>
-            <p className="text-xs text-gray-500 mt-1"><strong>Class:</strong> {img.className || "(No class)"}</p>
+            <img
+              src={img.src}
+              alt={img.alt}
+              className="w-full h-28 object-cover rounded-md"
+            />
+            <p className="text-sm text-gray-700 mt-2">
+              <strong>ALT:</strong> {img.alt}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              <strong>Class:</strong> {img.className || "(No class)"}
+            </p>
 
-            {/* ✅ Copy URL Button */}
-            <div className="flex gap-2">
-            <button
-              className="mt-2 px-2 py-1 text-xs bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-              onClick={(e) => {
-                e.stopPropagation();
-                copyToClipboard(img.src);
-              }}
-            >
-              📋 Copy URL
-            </button>
+            {/* ✅ Image Size Display */}
+            <p className="text-xs text-gray-500 mt-1">
+              <strong>Size:</strong>{" "}
+              {imageSizes[img.src]
+                ? `${(parseFloat(imageSizes[img.src]) * 1.0645).toFixed(2)} KB`
+                : "Fetching..."}
+            </p>
 
-            {/* ✅ Mark as OK Button (Only for yellow images) */}
-            {img.alt?.trim() !== "(No ALT text)" && !checkedImages[img.src] && (
+            {/* ✅ Copy URL & Mark as OK Buttons */}
+            <div className="flex gap-2 mt-2">
               <button
-                className="mt-2 px-3 py-1 bg-green-400 text-white rounded hover:bg-green-500"
+                className="px-2 py-1 text-xs bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleCheck(img);
+                  copyToClipboard(img.src);
                 }}
               >
-                ✔ Ok
+                📋 Copy URL
               </button>
-            )}
+
+              {/* ✅ Mark as OK Button (Only for yellow images) */}
+              {img.alt?.trim() !== "(No ALT text)" &&
+                !checkedImages[img.src] && (
+                  <button
+                    className="px-3 py-1 bg-green-400 text-white rounded hover:bg-green-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCheck(img);
+                    }}
+                  >
+                    ✔ Ok
+                  </button>
+                )}
             </div>
           </div>
         ))}

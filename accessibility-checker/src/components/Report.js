@@ -5,17 +5,18 @@ import ImageAltReview from "./ImageAltReview";
 import ImagePreviewModal from "./ImagePreviewModal";
 import VideoReview from "./VideoReview";
 import TextReview from "./TextReview";
+import PerformanceSummary from "./PerformanceSummary"; // ✅ New component for performance data
 import { calculateScore } from "@/utils/calculateScore";
 
 export default function Report({ report }) {
   if (!report) return null;
 
-  // ✅ Ensure all necessary report sections are included
   const {
     violations = [],
     images = [],
     videos = [],
     textContent = [],
+    loadTime = 0, // ✅ Ensure load time is handled properly
   } = report;
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -25,7 +26,7 @@ export default function Report({ report }) {
   const [checkedTexts, setCheckedTexts] = useState({});
   const [score, setScore] = useState(0);
 
-  // 🔹 Update score dynamically as elements are reviewed
+  // 🔹 Dynamically update score based on reviewed elements
   useEffect(() => {
     const newScore = calculateScore(violations, images, checkedImages, videos, checkedVideos, textContent, checkedTexts);
     setScore(newScore);
@@ -44,6 +45,9 @@ export default function Report({ report }) {
 
       {/* ✅ Updated Score Bar with Real-time Updates */}
       <ScoreBar score={score} />
+
+      {/* 🛠️ Performance Summary Section */}
+      <PerformanceSummary images={images} loadTime={loadTime} />
 
       {/* 🛠️ WCAG Violations Section */}
       <ViolationsList violations={violations} />
