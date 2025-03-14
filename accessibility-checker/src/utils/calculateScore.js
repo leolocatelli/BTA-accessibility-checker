@@ -6,15 +6,15 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   checkedVideos = checkedVideos || {};
   checkedTexts = checkedTexts || {};
 
-  // 🔹 30% - Image ALT Validation
+  // 🔹 40% - Image ALT Validation
   const totalImages = images.length;
   const reviewedImages = Object.values(checkedImages).filter(Boolean).length;
-  const imageScore = totalImages === 0 ? 30 : (reviewedImages / totalImages) * 30;
+  const imageScore = totalImages === 0 ? 40 : (reviewedImages / totalImages) * 40;
   score += imageScore;
 
-  // 🔹 30% - WCAG Violations Impact (Lower is better)
+  // 🔹 20% - WCAG Violations Impact (Lower is better)
   const totalViolations = violations.length;
-  const wcagScore = totalViolations === 0 ? 30 : Math.max(0, 30 - totalViolations);
+  const wcagScore = totalViolations === 0 ? 20 : Math.max(0, 20 - totalViolations);
   score += wcagScore;
 
   // 🔹 10% - Video Caption Validation
