@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       "$Large-5-1$": 1.0,
       "$Large-9-16$": 1.0,
       "%3ALarge-1-1": 0.68,
+      "%3ALarge-3-4": 0.55, 
 
       // ✅ XSMALL VARIANTS (ESTIMATED 65% REDUCTION)
       "$XSmall-16-9$": 0.35,
