@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       success: true,
       url,
       score,
-      pageSize, // ✅ Now correctly included
+      pageSize,
       images,
       videos,
       violations,

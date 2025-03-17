@@ -5,25 +5,20 @@ import ImageAltReview from "./ImageAltReview";
 import ImagePreviewModal from "./ImagePreviewModal";
 import VideoReview from "./VideoReview";
 import TextReview from "./TextReview";
-import PerformanceSummary from "./PerformanceSummary"; // ✅ New component for performance data
+import PerformanceSummary from "./PerformanceSummary";
 import { calculateScore } from "@/utils/calculateScore";
 
 export default function Report({ report }) {
   if (!report) return null;
 
-  const {
-    violations = [],
-    images = [],
-    videos = [],
-    textContent = [],
-    loadTime = 0, // ✅ Ensure load time is handled properly
-  } = report;
-
+  const { violations = [], images = [], videos = [], textContent = [], loadTime = 0 } = report;
+  
   const [selectedImage, setSelectedImage] = useState(null);
   const [filter, setFilter] = useState("none");
   const [checkedImages, setCheckedImages] = useState({});
   const [checkedVideos, setCheckedVideos] = useState({});
   const [checkedTexts, setCheckedTexts] = useState({});
+  const [imageSizes, setImageSizes] = useState({});
   const [score, setScore] = useState(0);
 
   // 🔹 Dynamically update score based on reviewed elements
@@ -32,25 +27,12 @@ export default function Report({ report }) {
     setScore(newScore);
   }, [violations, images, checkedImages, videos, checkedVideos, textContent, checkedTexts]);
 
-  const toggleCheck = (imgSrc) => {
-    setCheckedImages((prev) => ({
-      ...prev,
-      [imgSrc]: !prev[imgSrc],
-    }));
-  };
-
   return (
     <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold mb-2">Accessibility Report</h2>
 
-      {/* ✅ Updated Score Bar with Real-time Updates */}
-      <ScoreBar score={score} />
-
       {/* 🛠️ Performance Summary Section */}
-      <PerformanceSummary images={images} loadTime={loadTime} />
-
-      {/* 🛠️ WCAG Violations Section */}
-      <ViolationsList violations={violations} />
+      <PerformanceSummary images={images} imageSizes={imageSizes} loadTime={loadTime} />
 
       {/* 🖼️ Image ALT Review */}
       {images.length > 0 && (
@@ -59,6 +41,7 @@ export default function Report({ report }) {
           checkedImages={checkedImages}
           setCheckedImages={setCheckedImages}
           setSelectedImage={setSelectedImage}
+          setImageSizes={setImageSizes} // ✅ Armazena os tamanhos
         />
       )}
 
@@ -69,7 +52,7 @@ export default function Report({ report }) {
         filter={filter}
         setFilter={setFilter}
         checkedImages={checkedImages}
-        toggleCheck={toggleCheck}
+        toggleCheck={(imgSrc) => setCheckedImages((prev) => ({ ...prev, [imgSrc]: !prev[imgSrc] }))}
       />
 
       {/* 🎥 Video Caption Review */}

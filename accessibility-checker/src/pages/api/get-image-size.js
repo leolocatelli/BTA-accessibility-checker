@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       "$Large-4-3$": 1.0,
       // "$Large-3-4$": 1.0,
       "$Large-1-5$": 1.0,
-      "$Large-5-1$": 1.0,
+      // "$Large-5-1$": 1.0,
       "$Large-9-16$": 1.0,
       "%3ALarge-1-1": 0.68,
       "%3ALarge-3-4": 0.55, 
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       "$XSmall-5-1$": 0.35,
       "$XSmall-9-16$": 0.35,
       ":Large-3-4?$XSmall-3-4$": 0.14,
-      ":Large-1-1?$XSmall-1-1$": 0.063,
+      ":Large-1-1?$XSmall-1-1$": 0.073,
     };
 
 
