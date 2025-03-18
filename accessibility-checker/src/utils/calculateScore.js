@@ -9,12 +9,12 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   // 🔹 30% - Image ALT Validation
   const totalImages = images.length;
   const reviewedImages = Object.values(checkedImages).filter(Boolean).length;
-  const imageScore = totalImages === 0 ? 30 : (reviewedImages / totalImages) * 30;
+  const imageScore = totalImages === 0 ? 45 : (reviewedImages / totalImages) * 45;
   score += imageScore;
 
   // 🔹 30% - WCAG Violations Impact (Lower is better)
   const totalViolations = violations.length;
-  const wcagScore = totalViolations === 0 ? 30 : Math.max(0, 30 - totalViolations);
+  const wcagScore = totalViolations === 0 ? 10 : Math.max(0, 10 - totalViolations);
   score += wcagScore;
 
   // 🔹 10% - Video Caption Validation
@@ -26,7 +26,7 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   // 🔹 30% - Text Content Review
   const totalTexts = textContent.length;
   const reviewedTexts = Object.values(checkedTexts).filter(Boolean).length;
-  const textScore = totalTexts === 0 ? 30 : (reviewedTexts / totalTexts) * 30;
+  const textScore = totalTexts === 0 ? 35 : (reviewedTexts / totalTexts) * 35;
   score += textScore;
 
   // 🔹 Ensure the score is within the valid range (0-100)

@@ -1,4 +1,10 @@
 import fetch from "node-fetch";
+import https from "https";
+
+// Custom HTTPS agent to bypass TLS validation for specific domains
+const insecureAgent = new https.Agent({
+  rejectUnauthorized: false, // Allows bypassing SSL issues
+});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -11,8 +17,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing image URL" });
     }
 
-    // Fetch file size
-    const response = await fetch(imageUrl, { method: "HEAD" });
+    // Detect if the URL requires SSL bypass
+    const shouldBypassSSL = imageUrl.includes("view.email.brownthomas.com");
+
+    // Fetch file size (Using custom agent if needed)
+    const response = await fetch(imageUrl, {
+      method: "HEAD",
+      agent: shouldBypassSSL ? insecureAgent : undefined, // Apply custom agent conditionally
+    });
+
     const contentLength = response.headers.get("content-length");
 
     if (!contentLength) {
@@ -49,7 +62,6 @@ export default async function handler(req, res) {
       ":Large-3-4?$XSmall-3-4$": 0.14,
       ":Large-1-1?$XSmall-1-1$": 0.073,
     };
-
 
     // 🔍 Detect preset in URL & apply compression
     Object.keys(scene7Presets).forEach((preset) => {

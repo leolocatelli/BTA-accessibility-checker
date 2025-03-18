@@ -6,6 +6,7 @@ __pycache__/
 *.pyd
 *.env
 .env
+*screen
 
 # Django
 /db.sqlite3
@@ -34,3 +35,6 @@ Anotations
 
 src/utils/measurePageSize.js
 src/utils/measurePageSize*.js
+
+public/screenshots/
+nano .gitignore

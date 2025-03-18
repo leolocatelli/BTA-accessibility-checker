@@ -11,8 +11,14 @@ import { calculateScore } from "@/utils/calculateScore";
 export default function Report({ report }) {
   if (!report) return null;
 
-  const { violations = [], images = [], videos = [], textContent = [], loadTime = 0 } = report;
-  
+  const {
+    violations = [],
+    images = [],
+    videos = [],
+    textContent = [],
+    loadTime = 0,
+  } = report;
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [filter, setFilter] = useState("none");
   const [checkedImages, setCheckedImages] = useState({});
@@ -23,16 +29,42 @@ export default function Report({ report }) {
 
   // 🔹 Dynamically update score based on reviewed elements
   useEffect(() => {
-    const newScore = calculateScore(violations, images, checkedImages, videos, checkedVideos, textContent, checkedTexts);
+    const newScore = calculateScore(
+      violations,
+      images,
+      checkedImages,
+      videos,
+      checkedVideos,
+      textContent,
+      checkedTexts
+    );
     setScore(newScore);
-  }, [violations, images, checkedImages, videos, checkedVideos, textContent, checkedTexts]);
+  }, [
+    violations,
+    images,
+    checkedImages,
+    videos,
+    checkedVideos,
+    textContent,
+    checkedTexts,
+  ]);
 
   return (
     <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold mb-2">Accessibility Report</h2>
 
+      {/* ✅ Accessibility Score */}
+      <ScoreBar score={score} />
+
+      {/* ✅ Violations List */}
+      {violations.length > 0 && <ViolationsList violations={violations} />}
+
       {/* 🛠️ Performance Summary Section */}
-      <PerformanceSummary images={images} imageSizes={imageSizes} loadTime={loadTime} />
+      <PerformanceSummary
+        images={images}
+        imageSizes={imageSizes}
+        loadTime={loadTime}
+      />
 
       {/* 🖼️ Image ALT Review */}
       {images.length > 0 && (
@@ -52,7 +84,9 @@ export default function Report({ report }) {
         filter={filter}
         setFilter={setFilter}
         checkedImages={checkedImages}
-        toggleCheck={(imgSrc) => setCheckedImages((prev) => ({ ...prev, [imgSrc]: !prev[imgSrc] }))}
+        toggleCheck={(imgSrc) =>
+          setCheckedImages((prev) => ({ ...prev, [imgSrc]: !prev[imgSrc] }))
+        }
       />
 
       {/* 🎥 Video Caption Review */}
