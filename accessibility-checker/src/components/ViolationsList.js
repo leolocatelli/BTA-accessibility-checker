@@ -1,8 +1,5 @@
 import { useState } from "react";
-
-// 🔴 Uncomment these lines to enable SyntaxHighlighter
-// import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
-// import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function ViolationsList({ violations }) {
   if (!violations?.length) return null;
@@ -16,23 +13,30 @@ export default function ViolationsList({ violations }) {
 
   return (
     <div className="mt-6 p-6 bg-white rounded-lg shadow-md border border-gray-200">
-      <h3 className="text-xl font-semibold text-gray-800">WCAG Violations</h3>
+      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        <AlertTriangle className="text-red-500 w-6 h-6" />
+        WCAG Violations
+      </h3>
 
       <ul className="mt-4 space-y-2">
         {violations.map((violation, index) => (
           <li key={index} className="bg-gray-50 rounded-lg shadow-sm border-l-4 border-red-500">
             {/* 🔹 Clickable Title Bar */}
             <button
-              className="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 font-semibold flex justify-between items-center rounded-lg"
+              className="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 font-semibold flex justify-between items-center rounded-lg transition"
               onClick={() => toggleExpand(index)}
             >
               <span className="text-red-600">{violation.description}</span>
-              <span>{expandedIndex === index ? "🔼" : "🔽"}</span>
+              {expandedIndex === index ? (
+                <ChevronUp className="w-5 h-5 text-gray-600" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              )}
             </button>
 
             {/* 🔹 Hidden Details Section (Expands when clicked) */}
             {expandedIndex === index && (
-              <div className="p-5">
+              <div className="p-5 border-t border-gray-300 bg-white">
                 {/* Impact */}
                 <p className="text-sm text-gray-700">
                   <strong>Impact:</strong> {violation.impact}
@@ -50,7 +54,7 @@ export default function ViolationsList({ violations }) {
                           {/* 🔹 Element Description */}
                           <p className="font-semibold text-gray-900">{el.description}</p>
 
-                          {/* 🔹 Selector (Choose ONE Display Type) */}
+                          {/* 🔹 Selector (Styled Code Block) */}
                           <pre className="bg-gray-300 text-gray-900 text-xs p-3 rounded-md overflow-x-auto mt-2">
                             {el.selector}
                           </pre>
