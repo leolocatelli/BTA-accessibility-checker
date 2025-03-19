@@ -1,8 +1,20 @@
+import { useState } from "react";
 import { getColor } from "@/utils/getColor";
 import { copyToClipboard } from "@/utils/copyToClipboard";
-import { Copy, CheckCircle } from "lucide-react";
+import { Copy, CheckCircle, Check } from "lucide-react";
 
 export default function ImageCard({ img, imageSizes, checkedImages, setCheckedImages, setSelectedImage }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    copyToClipboard(img.src);
+    setCopied(true);
+
+    // Reset back to "Copy URL" after 1.5 seconds
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   const toggleCheck = () => {
     if (!img.alt || img.alt.trim() === "(No ALT text)") return;
 
@@ -35,13 +47,12 @@ export default function ImageCard({ img, imageSizes, checkedImages, setCheckedIm
       {/* ✅ Action Buttons (Always Aligned to Bottom) */}
       <div className="flex justify-between mt-auto pt-3">
         <button
-          className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
-          onClick={(e) => {
-            e.stopPropagation();
-            copyToClipboard(img.src);
-          }}
+          className="flex items-center gap-1 px-3 py-1 text-xs rounded-md transition-all duration-300 ease-in-out 
+          bg-gray-300 text-gray-800 hover:bg-gray-400 active:scale-95"
+          onClick={handleCopy}
         >
-          <Copy className="w-4 h-4" /> Copy URL
+          {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+          {copied ? "Copied!" : "Copy URL"}
         </button>
 
         {!checkedImages[img.src] && img.alt?.trim() !== "(No ALT text)" && (

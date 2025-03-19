@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "BTA EAA Report",
+  title: "BTA Accessibility Tool",
   description: "Automated accessibility evaluation",
   icons: {
     icon: "/accessibility-icon.ico", // Standard favicon

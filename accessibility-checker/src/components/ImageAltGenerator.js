@@ -1,6 +1,6 @@
-"use client"; // ✅ Mark as a client component
+"use client"; // ✅ Ensure it's a client component
 import { useState } from "react";
-import { Loader2, XCircle, AlertTriangle } from "lucide-react";
+import { Loader2, XCircle, AlertTriangle, Clipboard } from "lucide-react";
 
 const altCache = {}; // 🔹 Cache to avoid redundant API calls
 const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/"; // 🔹 Base URL for partial inputs
@@ -9,7 +9,7 @@ export default function ImageAltGenerator() {
   const [imageUrls, setImageUrls] = useState([]);
   const [altResults, setAltResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [warning, setWarning] = useState(""); // 🔹 Warning for duplicate images
+  const [warning, setWarning] = useState("");
   const CHARACTER_LIMIT = 150; // 🔹 Max ALT text length
 
   // Handle URL Input (Prevents Duplicates & Auto-Formats Partial Inputs)
@@ -27,9 +27,9 @@ export default function ImageAltGenerator() {
     const duplicates = processedUrls.filter((url) => imageUrls.includes(url));
 
     if (duplicates.length > 0) {
-      setWarning("⚠️ Some images were already added and were skipped."); // Show warning message
+      setWarning("Some images were already added and were skipped.");
     } else {
-      setWarning(""); // Clear warning if no duplicates
+      setWarning("");
     }
 
     // 🔹 Add only unique URLs
@@ -52,7 +52,7 @@ export default function ImageAltGenerator() {
 
     for (const url of imageUrls) {
       if (altCache[url]) {
-        newResults.push({ url, altText: altCache[url] }); // 🔹 Use cache if available
+        newResults.push({ url, altText: altCache[url] });
         continue;
       }
 
@@ -69,7 +69,7 @@ export default function ImageAltGenerator() {
 
         const data = await response.json();
         if (data.altText) {
-          altCache[url] = data.altText; // 🔹 Store in cache
+          altCache[url] = data.altText;
           newResults.push({ url, altText: data.altText });
         }
       } catch (error) {
@@ -82,8 +82,8 @@ export default function ImageAltGenerator() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      {/* URL Input */}
+    <div className="p-6 max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
+      {/* ✅ URL Input */}
       <textarea
         rows="3"
         className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300"
@@ -91,24 +91,32 @@ export default function ImageAltGenerator() {
         onChange={handleUrlInput}
       />
 
-      {/* Duplicate Warning Message */}
+      {/* ⚠️ Warning Message */}
       {warning && (
         <div className="mt-2 text-sm text-yellow-600 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" /> {warning}
+          <AlertTriangle className="w-5 h-5 text-yellow-600" /> {warning}
         </div>
       )}
 
-      {/* Uploaded Image Previews */}
+      {/* ✅ Uploaded Image Previews */}
       {imageUrls.length > 0 && (
         <div className="mt-4 bg-gray-100 p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2">Uploaded Images:</h3>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {imageUrls.map((url, index) => (
-              <div key={index} className="relative">
-                <img src={url} alt="Uploaded Preview" className="w-auto h-32 object-cover rounded-md border shadow" />
+              <div key={index} className="relative group flex items-center justify-center">
+                <div className="relative w-full h-32 md:h-36 flex items-center justify-center bg-gray-200 rounded-md border overflow-hidden">
+                  <img
+                    src={url}
+                    alt="Uploaded Preview"
+                    className="w-auto max-h-full object-contain rounded-md"
+                  />
+                </div>
+
+                {/* ✅ Close (X) Button - Correctly Positioned */}
                 <button
                   onClick={() => removeImage(url)}
-                  className="absolute top-0 right-0 bg-gray-700/40 text-white rounded-full p-1 hover:bg-gray-900/50"
+                  className="absolute top-1 right-1 bg-gray-700/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-900"
                 >
                   <XCircle className="w-5 h-5" />
                 </button>
@@ -118,7 +126,7 @@ export default function ImageAltGenerator() {
         </div>
       )}
 
-      {/* Generate Button */}
+      {/* ✅ Generate Button */}
       <button
         className="mt-4 w-full px-4 py-3 text-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center"
         onClick={generateAltTexts}
@@ -127,22 +135,34 @@ export default function ImageAltGenerator() {
         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Generate ALT Texts"}
       </button>
 
-      {/* Results Section */}
+      {/* ✅ Results Section */}
       {altResults.length > 0 && (
         <div className="mt-6 p-5 bg-gray-50 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Generated ALT Texts</h3>
-          <ul className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {altResults.map((result, index) => (
-              <li key={index} className="p-4 bg-white rounded-lg shadow flex flex-col items-center">
-                <img
-                  src={result.url}
-                  alt="Preview"
-                  className="w-36 h-36 object-cover rounded-md border shadow-md mb-3"
-                />
-                <p className="text-gray-700 text-sm text-center">{result.altText}</p>
-              </li>
+              <div key={index} className="p-4 bg-white rounded-lg shadow flex flex-col items-center">
+                <div className="relative w-full h-40 flex items-center justify-center rounded-md  overflow-hidden">
+                  <img
+                    src={result.url}
+                    alt="Preview"
+                    className="w-auto max-h-full object-contain rounded-md"
+                  />
+                </div>
+
+                {/* ✅ ALT Text */}
+                <p className="text-gray-700 text-sm text-center mt-3">{result.altText}</p>
+
+                {/* ✅ Copy to Clipboard Button */}
+                <button
+                  className="mt-2 flex items-center gap-2 text-blue-600 text-xs border border-blue-500 px-3 py-1 rounded-md hover:bg-blue-100 transition"
+                  onClick={() => navigator.clipboard.writeText(result.altText)}
+                >
+                  <Clipboard className="w-4 h-4" /> Copy ALT Text
+                </button>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>

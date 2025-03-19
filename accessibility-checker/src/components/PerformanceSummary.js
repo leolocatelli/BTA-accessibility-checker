@@ -45,7 +45,7 @@ export default function PerformanceSummary({ images, imageSizes, loadTime }) {
       </div>
 
       {/* 🔍 Resource Breakdown */}
-      <div className="col-span-2 md:col-span-3 bg-gray-50 p-5 rounded-lg shadow-md mt-4">
+      {/* <div className="col-span-2 md:col-span-3 bg-gray-50 p-5 rounded-lg shadow-md mt-4">
         <h3 className="text-lg font-semibold mb-3">Resource Breakdown</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {Object.entries(resourceBreakdown).map(([key, size]) => (
@@ -55,7 +55,7 @@ export default function PerformanceSummary({ images, imageSizes, loadTime }) {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

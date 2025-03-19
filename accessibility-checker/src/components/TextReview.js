@@ -6,11 +6,11 @@ export default function TextReview({ texts, checkedTexts, setCheckedTexts }) {
   const toggleCheck = (index) => {
     setCheckedTexts((prev) => ({
       ...prev,
-      [index]: !prev[index], // ✅ Alterna entre revisado/não revisado
+      [index]: !prev[index], // ✅ Toggle reviewed state
     }));
   };
 
-  // ✅ Tecla "T" + Clique para marcar todos os textos
+  // ✅ Press "T" + Click to mark all texts
   useEffect(() => {
     const handleKeyPress = (event) => {
       if (event.key.toLowerCase() === "t") {
@@ -45,9 +45,16 @@ export default function TextReview({ texts, checkedTexts, setCheckedTexts }) {
   }, [texts, setCheckedTexts]);
 
   return (
-    <div className="mt-6">
-      <h3 className="text-lg font-semibold">📝 Text Content Review</h3>
-      <ul className="mt-2 space-y-4">
+    <div className="mt-6 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      {/* ✅ Title with SVG Icon */}
+      <div className="flex items-center gap-2 text-gray-800 mb-3">
+        
+
+        <h3 className="text-xl font-semibold">Text Content Review</h3>
+      </div>
+
+      {/* ✅ Review List */}
+      <ul className="space-y-4">
         {texts.map((text, index) => (
           <li
             key={index}
@@ -57,14 +64,39 @@ export default function TextReview({ texts, checkedTexts, setCheckedTexts }) {
           >
             <p className="text-gray-800">{text}</p>
 
-            {/* ✅ Botão de revisão */}
+            {/* ✅ Review Button with SVG Check Icon */}
             <button
-              className={`mt-2 px-4 py-2 text-sm font-semibold rounded-lg shadow ${
+              className={`mt-2 flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow transition ${
                 checkedTexts[index] ? "bg-green-600 text-white" : "bg-yellow-500 text-gray-800"
               }`}
               onClick={() => toggleCheck(index)}
             >
-              {checkedTexts[index] ? "✅ Reviewed" : "✔ Mark as Reviewed"}
+              {/* SVG Check Icon */}
+              {checkedTexts[index] ? (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5v14"></path>
+                </svg>
+              )}
+
+              {checkedTexts[index] ? "Reviewed" : "Mark as Reviewed"}
             </button>
           </li>
         ))}
