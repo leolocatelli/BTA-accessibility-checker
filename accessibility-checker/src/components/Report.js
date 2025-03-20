@@ -6,7 +6,7 @@ import ImagePreviewModal from "./ImagePreviewModal";
 import VideoReview from "./VideoReview";
 import TextReview from "./TextReview";
 import PerformanceSummary from "./PerformanceSummary";
-import { calculateScore } from "@/utils/calculateScore";
+import { calculateScore } from "../utils/calculateScore";
 
 export default function Report({ report }) {
   if (!report) return null;

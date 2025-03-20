@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { getColor } from "@/utils/getColor";
-import { copyToClipboard } from "@/utils/copyToClipboard";
+import { getColor } from "../utils/getColor";
+import { copyToClipboard } from "../utils/copyToClipboard";
 import { Copy, CheckCircle, Check } from "lucide-react";
 
 export default function ImageCard({ img, imageSizes, checkedImages, setCheckedImages, setSelectedImage }) {

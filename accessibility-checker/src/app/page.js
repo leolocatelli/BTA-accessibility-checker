@@ -1,11 +1,11 @@
 "use client"; // Required for Next.js App Router
 
 import { useState } from "react";
-import Image from "next/image"; // ✅ Import Next.js Image component
-import TabsNavigation from "@/components/TabsNavigation";
-import AccessibilityChecker from "@/components/AccessibilityChecker";
-import ImageAltGenerator from "@/components/ImageAltGenerator";
-import ColorContrastChecker from "@/components/ColorContrastChecker";
+import Image from "next/image"; 
+import TabsNavigation from "../components/TabsNavigation";
+import AccessibilityChecker from "../components/AccessibilityChecker";
+import ImageAltGenerator from "../components/ImageAltGenerator";
+import ColorContrastChecker from "../components/ColorContrastChecker";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");

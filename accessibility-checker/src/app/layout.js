@@ -1,5 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { ReportProvider } from "@/context/ReportContext";
+import { ReportProvider } from "../context/ReportContext";
 
 import "./globals.css";
 

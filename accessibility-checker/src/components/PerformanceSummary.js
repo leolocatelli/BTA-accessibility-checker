@@ -1,5 +1,5 @@
-import { useTotalImageSize } from "@/app/hooks/useTotalImageSize";
-import { useTotalResourceSize } from "@/app/hooks/useTotalResourceSize";
+import { useTotalImageSize } from "../app/hooks/useTotalImageSize";
+import { useTotalResourceSize } from "../app/hooks/useTotalResourceSize";
 import { Image, Layers, Clock, Package } from "lucide-react";
 
 export default function PerformanceSummary({ images, imageSizes, loadTime }) {

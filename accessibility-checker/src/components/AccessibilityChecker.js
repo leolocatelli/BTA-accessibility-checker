@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { useReport } from "@/context/ReportContext";
-import InputField from "@/components/InputField";
-import SubmitButton from "@/components/SubmitButton";
-import Report from "@/components/Report";
+import { useReport } from "../context/ReportContext";
+import InputField from "../components/InputField";
+import SubmitButton from "../components/SubmitButton";
+import Report from "../components/Report";
 import { Loader2 } from "lucide-react";
 
 export default function AccessibilityChecker() {
@@ -81,3 +81,4 @@ export default function AccessibilityChecker() {
     </div>
   );
 }
+

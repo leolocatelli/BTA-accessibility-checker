@@ -1,5 +1,5 @@
-import { useImageSizes } from "@/app/hooks/useImageSizes";
-import { useShortcutCheck } from "@/app/hooks/useShortcutCheck";
+import { useImageSizes } from "../app/hooks/useImageSizes";
+import { useShortcutCheck } from "../app/hooks/useShortcutCheck";
 import ImageCard from "./ImageCard";
 import { useEffect, useState } from "react";
 
