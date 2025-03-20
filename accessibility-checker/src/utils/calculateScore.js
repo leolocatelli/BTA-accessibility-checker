@@ -9,20 +9,12 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   // 🔹 40% - Image ALT Validation
   const totalImages = images.length;
   const reviewedImages = Object.values(checkedImages).filter(Boolean).length;
-<<<<<<< HEAD
-  const imageScore = totalImages === 0 ? 40 : (reviewedImages / totalImages) * 40;
-=======
   const imageScore = totalImages === 0 ? 45 : (reviewedImages / totalImages) * 45;
->>>>>>> alt-generator-gpt
   score += imageScore;
 
   // 🔹 20% - WCAG Violations Impact (Lower is better)
   const totalViolations = violations.length;
-<<<<<<< HEAD
-  const wcagScore = totalViolations === 0 ? 20 : Math.max(0, 20 - totalViolations);
-=======
   const wcagScore = totalViolations === 0 ? 10 : Math.max(0, 10 - totalViolations);
->>>>>>> alt-generator-gpt
   score += wcagScore;
 
   // 🔹 10% - Video Caption Validation
