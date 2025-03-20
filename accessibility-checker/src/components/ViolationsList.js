@@ -63,7 +63,7 @@ export default function ViolationsList({ violations }) {
                           {el.screenshot && (
                             <img
                               src={el.screenshot}
-                              alt="Issue preview"
+                              alt="Image Deleted"
                               className="w-auto h-[180px] rounded-lg shadow-md mt-3"
                             />
                           )}
