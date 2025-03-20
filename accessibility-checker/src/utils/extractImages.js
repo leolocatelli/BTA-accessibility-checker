@@ -1,6 +1,6 @@
 export async function extractImages(page) {
   try {
-    const ignoredClasses = ["mega-menu__mobile"];
+    const ignoredClasses = ["mega-menu__mobile",];
 
     return await page.evaluate(async (ignoredClasses) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));

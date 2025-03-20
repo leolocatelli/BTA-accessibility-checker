@@ -1,5 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { ReportProvider } from "@/context/ReportContext";
+import { ReportProvider } from "../context/ReportContext";
 
 import "./globals.css";
 
@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "BTA EAA Report",
+  title: "BTA Accessibility Tool",
   description: "Automated accessibility evaluation",
   icons: {
     icon: "/accessibility-icon.ico", // Standard favicon

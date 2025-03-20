@@ -1,11 +1,11 @@
-import { analyzePageAccessibility } from "@/utils/analyzePageAccessibility";
-import { extractImages } from "@/utils/extractImages";
-import { extractVideos } from "@/utils/extractVideos";
-import { handleViolations } from "@/utils/handleViolations";
-import { calculateScore } from "@/utils/calculateScore";
-import { cleanupScreenshots } from "@/utils/cleanupScreenshots";
-import { extractText } from "@/utils/extractText";
-import { measureLoadTime } from "@/utils/measureLoadTime"; // ✅ Added load time measurement
+import { analyzePageAccessibility } from "../../utils/analyzePageAccessibility";
+import { extractImages } from "../../utils/extractImages";
+import { extractVideos } from "../../utils/extractVideos";
+import { handleViolations } from "../../utils/handleViolations";
+import { calculateScore } from "../../utils/calculateScore";
+import { cleanupScreenshots } from "../../utils/cleanupScreenshots";
+import { extractText } from "../../utils/extractText";
+import { measureLoadTime } from "../../utils/measureLoadTime"; // ✅ Added load time measurement
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

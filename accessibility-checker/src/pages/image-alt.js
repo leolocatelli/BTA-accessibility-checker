@@ -1,4 +1,4 @@
-import ImageAltGenerator from "@/components/ImageAltGenerator";
+import ImageAltGenerator from "../../components/ImageAltGenerator";
 
 export default function ImageAltPage() {
   return (

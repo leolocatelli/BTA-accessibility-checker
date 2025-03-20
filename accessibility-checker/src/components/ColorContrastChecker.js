@@ -1,5 +1,7 @@
-'use client'; // ✅ Mark as a client component
+"use client"; // ✅ Ensure this is a client component
 import { useState } from "react";
+import { IoColorPaletteOutline } from "react-icons/io5";
+import { MdCheckCircle, MdCancel } from "react-icons/md";
 
 export default function ColorContrastChecker() {
   const [textColor, setTextColor] = useState("#ffffff");
@@ -31,11 +33,15 @@ export default function ColorContrastChecker() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
-      {/* <h2 className="text-2xl font-bold text-center mb-6">🎨 Color Contrast Checker</h2> */}
+      {/* ✅ Header with Icon */}
+      <div className="flex items-center justify-center gap-3 text-blue-600 text-2xl font-bold mb-6">
+        {/* <IoColorPaletteOutline className="w-8 h-8" /> */}
+        {/* <h2>Color Contrast Checker</h2> */}
+      </div>
 
-      {/* Color Inputs */}
+      {/* 🎨 Color Inputs */}
       <div className="grid grid-cols-2 gap-6 mb-6">
-        {/* Background Color Picker & Input */}
+        {/* Background Color Picker */}
         <div className="flex flex-col items-center">
           <label className="text-sm font-semibold mb-1">Background Color</label>
           <input
@@ -53,7 +59,7 @@ export default function ColorContrastChecker() {
           />
         </div>
 
-        {/* Text Color Picker & Input */}
+        {/* Text Color Picker */}
         <div className="flex flex-col items-center">
           <label className="text-sm font-semibold mb-1">Text Color</label>
           <input
@@ -72,9 +78,9 @@ export default function ColorContrastChecker() {
         </div>
       </div>
 
-      {/* Editable Text Preview */}
+      {/* 📝 Editable Text Preview */}
       <div
-        className="mt-6 p-6 rounded-xl shadow-md text-center border"
+        className="mt-6 p-6 rounded-xl shadow-md text-center border border-gray-300"
         style={{ backgroundColor: bgColor, color: textColor }}
       >
         <input
@@ -85,21 +91,28 @@ export default function ColorContrastChecker() {
         />
       </div>
 
-      {/* WCAG Results */}
+      {/* ✅ WCAG Results */}
       <div className="mt-6 p-6 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-center">
           Contrast Ratio: <span className="text-blue-600">{contrastRatio}:1</span>
         </h2>
-        <div className="flex flex-col md:flex-row gap-5 mt-4 justify-center text-center">
-          <p className={passesNormal ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-            Normal Text: {passesNormal ? "✅ Pass" : "❌ Fail (Needs 4.5:1)"}
-          </p>
-          <p className={passesLarge ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-            Large Text: {passesLarge ? "✅ Pass" : "❌ Fail (Needs 3.0:1)"}
-          </p>
-          <p className={passesUI ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-            UI Components: {passesUI ? "✅ Pass" : "❌ Fail (Needs 3.0:1)"}
-          </p>
+
+        {/* Results Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-center">
+          <div className={`flex items-center justify-center gap-2 p-3 rounded-lg shadow-md ${passesNormal ? "bg-green-100 border-green-500" : "bg-red-100 border-red-500"} border`}>
+            {passesNormal ? <MdCheckCircle className="w-5 h-5 text-green-600" /> : <MdCancel className="w-5 h-5 text-red-600" />}
+            <p className="text-sm font-semibold">{passesNormal ? "Pass" : "Fail"} Normal Text</p>
+          </div>
+
+          <div className={`flex items-center justify-center gap-2 p-3 rounded-lg shadow-md ${passesLarge ? "bg-green-100 border-green-500" : "bg-red-100 border-red-500"} border`}>
+            {passesLarge ? <MdCheckCircle className="w-5 h-5 text-green-600" /> : <MdCancel className="w-5 h-5 text-red-600" />}
+            <p className="text-sm font-semibold">{passesLarge ? "Pass" : "Fail"} Large Text</p>
+          </div>
+
+          <div className={`flex items-center justify-center gap-2 p-3 rounded-lg shadow-md ${passesUI ? "bg-green-100 border-green-500" : "bg-red-100 border-red-500"} border`}>
+            {passesUI ? <MdCheckCircle className="w-5 h-5 text-green-600" /> : <MdCancel className="w-5 h-5 text-red-600" />}
+            <p className="text-sm font-semibold">{passesUI ? "Pass" : "Fail"} UI Components</p>
+          </div>
         </div>
       </div>
     </div>

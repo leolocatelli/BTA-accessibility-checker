@@ -6,6 +6,7 @@ __pycache__/
 *.pyd
 *.env
 .env
+*screen
 
 # Django
 /db.sqlite3
