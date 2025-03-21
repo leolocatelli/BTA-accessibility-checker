@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "postinstall": "npx puppeteer browsers install chrome",
+    "heroku-postbuild": "npm install && npm run build"
+
   },
   "dependencies": {
     "lucide-react": "^0.483.0",
