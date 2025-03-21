@@ -9,11 +9,9 @@
     "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
-    "puppeteer-core": "10.2.0",
-    "chrome-aws-lambda": "^10.1.0",
-    "@axe-core/puppeteer": "^4.7.2",
     "lucide-react": "^0.483.0",
     "next": "^15.1.7",
+    "puppeteer": "^24.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0"
