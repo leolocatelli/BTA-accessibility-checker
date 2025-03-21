@@ -1,0 +1,37 @@
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.env
+.env
+*screen
+
+# Django
+/db.sqlite3
+/media/
+*.log
+
+# Virtual Environment
+venv/
+env/
+*.venv
+
+# IDEs e Configurações
+.vscode/
+.idea/
+*.swp
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Static & Media (caso use S3, pode manter)
+staticfiles/
+node_modules/
+
+Anotations
+
+src/utils/measurePageSize.js
+src/utils/measurePageSize*.js
