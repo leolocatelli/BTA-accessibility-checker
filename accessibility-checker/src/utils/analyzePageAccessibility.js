@@ -9,10 +9,10 @@ export async function analyzePageAccessibility(url) {
     const isProd = process.env.NODE_ENV === "production";
 
     browser = await (isProd
-      ? chromium.puppeteer.launch({
-          args: chromium.args,
-          executablePath: await chromium.executablePath,
-          headless: chromium.headless,
+      ? puppeteer.launch({
+          headless: true,
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          executablePath: process.env.CHROME_BIN || "/app/.apt/usr/bin/google-chrome-stable",
         })
       : puppeteer.launch({
           headless: true,
