@@ -1,8 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { getSuggestedFix } from "./getSuggestedFix.js";
+const fs = require("fs");
+const path = require("path");
+const { getSuggestedFix } = require("../../../backend/getSuggestedFix.js");
 
-export async function handleViolations(page, results) {
+async function handleViolations(page, results) {
   console.log("📸 Capturing WCAG Violation Screenshots...");
 
   const violations = await Promise.all(
@@ -14,7 +14,6 @@ export async function handleViolations(page, results) {
           const el = await page.$(node.target[0]);
           if (!el) continue;
 
-          // Extract readable element description
           const elementDescription = await page.evaluate((el) => {
             return (
               el.getAttribute("aria-label") ||
@@ -25,20 +24,17 @@ export async function handleViolations(page, results) {
             );
           }, el);
 
-          // Classify issue type
           let issueType = "Unknown";
           if (violation.id.includes("color-contrast")) issueType = "CSS";
           else if (violation.id.includes("heading") || violation.id.includes("aria")) issueType = "HTML";
           else if (violation.id.includes("focus") || violation.id.includes("keyboard")) issueType = "JavaScript";
 
-          // Clean up the selector
           const cleanSelector = node.target[0]
-            .replace(/:nth-child\(\d+\)/g, "") // Remove nth-child
-            .replace(/\s*>\s*/g, " > ") // Normalize spaces
-            .replace(/div\s*>\s*/g, "") // Remove redundant divs
+            .replace(/:nth-child\(\d+\)/g, "")
+            .replace(/\s*>\s*/g, " > ")
+            .replace(/div\s*>\s*/g, "")
             .trim();
 
-          // Prefer ID over long class chains
           const elementId = await page.evaluate((el) => el.id || null, el);
           const elementClass = await page.evaluate((el) => el.className || null, el);
 
@@ -46,16 +42,13 @@ export async function handleViolations(page, results) {
           if (elementId) finalSelector = `#${elementId}`;
           else if (elementClass) finalSelector = `.${elementClass.split(" ")[0]}`;
 
-          // Define screenshot directory
-          const screenshotDir = path.join(process.cwd(), "public", "screenshots");
+          const screenshotDir = path.join(__dirname, "../../public/screenshots");
           if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
 
-          // Define screenshot path
           const screenshotPath = path.join(screenshotDir, `${Date.now()}.png`);
           const boundingBox = await el.boundingBox();
 
           if (boundingBox && boundingBox.width > 0 && boundingBox.height > 0) {
-            // Expand capture area
             const PADDING_X = 600;
             const PADDING_Y = 150;
             const viewport = await page.viewport();
@@ -75,21 +68,11 @@ export async function handleViolations(page, results) {
             });
 
             affectedElements.push({
-              selector: `\`${finalSelector}\``, // Wrap selector in backticks
+              selector: `\`${finalSelector}\``,
               description: elementDescription || "Unknown element",
-              issueType, // ✅ Added issue classification
+              issueType,
               screenshot: `/screenshots/${path.basename(screenshotPath)}`,
             });
-
-            // Delete screenshot after 1 minute
-            // setTimeout(() => {
-            //   try {
-            //     fs.unlinkSync(screenshotPath);
-            //     console.log(`🗑️ Deleted screenshot: ${screenshotPath}`);
-            //   } catch (err) {
-            //     console.error(`❌ Failed to delete ${screenshotPath}:`, err);
-            //   }
-            // }, 60000);
           }
         } catch (error) {
           console.error("❌ Error capturing screenshot:", error);
@@ -107,3 +90,5 @@ export async function handleViolations(page, results) {
 
   return violations;
 }
+
+module.exports = { handleViolations };

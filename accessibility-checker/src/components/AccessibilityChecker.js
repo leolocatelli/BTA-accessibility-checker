@@ -16,7 +16,8 @@ export default function AccessibilityChecker() {
     setDeleteScheduled(false); // Reset delete scheduling
 
     try {
-      const response = await fetch("/api/check", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check`, {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),

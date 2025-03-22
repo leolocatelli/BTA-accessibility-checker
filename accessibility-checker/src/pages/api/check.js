@@ -1,9 +1,9 @@
-import { analyzePageAccessibility } from "../../utils/analyzePageAccessibility";
+import { analyzePageAccessibility } from "../../../../backend/analyzePageAccessibility.js";
 import { extractImages } from "../../utils/extractImages";
 import { extractVideos } from "../../utils/extractVideos";
-import { handleViolations } from "../../utils/handleViolations";
-import { calculateScore } from "../../utils/calculateScore";
-import { cleanupScreenshots } from "../../utils/cleanupScreenshots";
+import { handleViolations } from "../../utils/handleViolations.cjs";
+import { calculateScore } from "../../../../backend/calculateScore.js";
+import { cleanupScreenshots } from "../../../../backend/cleanupScreenshots.js";
 import { extractText } from "../../utils/extractText";
 import { measureLoadTime } from "../../utils/measureLoadTime"; // ✅ Added load time measurement
 

@@ -43,7 +43,7 @@ export default function ViolationsList({ violations }) {
                 </p>
 
                 {/* Affected Elements Section */}
-                {violation.affectedElements.length > 0 && (
+                {violation.affectedElements?.length > 0 && (
                   <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
                     <p className="text-sm font-semibold text-gray-800">Affected Elements:</p>
 
