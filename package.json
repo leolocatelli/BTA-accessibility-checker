@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@axe-core/puppeteer": "^4.10.1",
-    "chrome-aws-lambda": "^10.1.0",
     "lucide-react": "^0.268.0",
     "node-fetch": "^2.6.7",
     "openai": "^4.20.0",

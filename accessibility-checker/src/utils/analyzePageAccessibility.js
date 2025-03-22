@@ -1,6 +1,5 @@
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import puppeteer from "puppeteer";
-import chromium from "chrome-aws-lambda";
 
 export async function analyzePageAccessibility(url) {
   let browser;
@@ -8,16 +7,23 @@ export async function analyzePageAccessibility(url) {
   try {
     const isProd = process.env.NODE_ENV === "production";
 
-    browser = await (isProd
-      ? puppeteer.launch({
-          headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
-          executablePath: process.env.CHROME_BIN || "/app/.apt/usr/bin/google-chrome-stable",
-        })
-      : puppeteer.launch({
-          headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        }));
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-extensions"
+      ],
+      executablePath: isProd
+        ? "/app/.apt/usr/bin/google-chrome-stable"
+        : undefined,
+    });
 
     const page = await browser.newPage();
     await page.setBypassCSP(true);
@@ -41,7 +47,7 @@ export async function analyzePageAccessibility(url) {
       });
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Extra delay
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     console.log("🔍 Running Axe Accessibility Analysis...");
 
     const results = await new AxePuppeteer(page).analyze();
