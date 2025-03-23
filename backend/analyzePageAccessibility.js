@@ -5,7 +5,8 @@ async function analyzePageAccessibility(url) {
   let browser;
 
   try {
-    const isProd = process.env.NODE_ENV === "production";
+    const isHeroku = process.env.NODE_ENV === "production" && process.env.RENDER !== "true";
+    const isRender = process.env.RENDER === "true";
 
     browser = await puppeteer.launch({
       headless: true,
@@ -20,8 +21,10 @@ async function analyzePageAccessibility(url) {
         "--single-process",
         "--disable-extensions"
       ],
-      executablePath: isProd
+      executablePath: isHeroku
         ? "/app/.apt/usr/bin/google-chrome-stable"
+        : isRender
+        ? puppeteer.executablePath()
         : undefined,
     });
 
