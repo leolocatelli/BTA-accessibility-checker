@@ -20,7 +20,10 @@ export default function ViolationsList({ violations }) {
 
       <ul className="mt-4 space-y-2">
         {violations.map((violation, index) => (
-          <li key={index} className="bg-gray-50 rounded-lg shadow-sm border-l-4 border-red-500">
+          <li
+            key={index}
+            className="bg-gray-50 rounded-lg shadow-sm border-l-4 border-red-500"
+          >
             {/* 🔹 Clickable Title Bar */}
             <button
               className="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 font-semibold flex justify-between items-center rounded-lg transition"
@@ -45,14 +48,20 @@ export default function ViolationsList({ violations }) {
                 {/* Affected Elements Section */}
                 {violation.affectedElements?.length > 0 && (
                   <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
-                    <p className="text-sm font-semibold text-gray-800">Affected Elements:</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      Affected Elements:
+                    </p>
 
                     <ul className="mt-3 space-y-3">
                       {violation.affectedElements.map((el, idx) => (
-                        <li key={idx} className="p-3 bg-gray-200 rounded-md border border-gray-300">
-                          
+                        <li
+                          key={idx}
+                          className="p-3 bg-gray-200 rounded-md border border-gray-300"
+                        >
                           {/* 🔹 Element Description */}
-                          <p className="font-semibold text-gray-900">{el.description}</p>
+                          <p className="font-semibold text-gray-900">
+                            {el.description}
+                          </p>
 
                           {/* 🔹 Selector (Styled Code Block) */}
                           <pre className="bg-gray-300 text-gray-900 text-xs p-3 rounded-md overflow-x-auto mt-2">
@@ -61,9 +70,14 @@ export default function ViolationsList({ violations }) {
 
                           {/* 🖼️ Screenshot Preview */}
                           {el.screenshot && (
+                            // <img
+                            //   src={el.screenshot}
+                            //   alt="Image Deleted"
+                            //   className="w-auto h-[180px] rounded-lg shadow-md mt-3"
+                            // />
                             <img
-                              src={el.screenshot}
-                              alt="Image Deleted"
+                              src={`${process.env.NEXT_PUBLIC_API_URL}${el.screenshot}`}
+                              alt="WCAG Violation Screenshot"
                               className="w-auto h-[180px] rounded-lg shadow-md mt-3"
                             />
                           )}
