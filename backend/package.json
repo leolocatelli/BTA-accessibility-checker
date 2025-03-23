@@ -3,7 +3,6 @@
   "version": "1.0.0",
 "scripts": {
   "start": "node server.js",
-  "heroku-postbuild": "cd accessibility-checker && npm install && npm run build",
   "postinstall": "npx puppeteer browsers install chrome"
 },
   "dependencies": {
