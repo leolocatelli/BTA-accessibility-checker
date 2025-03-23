@@ -1,6 +1,6 @@
-export async function extractImages(page) {
+async function extractImages(page) {
   try {
-    const ignoredClasses = ["mega-menu__mobile",];
+    const ignoredClasses = ["mega-menu__mobile"];
 
     return await page.evaluate(async (ignoredClasses) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -33,7 +33,7 @@ export async function extractImages(page) {
           const key = `${src}-${alt}`;
           if (!seenImages.has(key)) {
             seenImages.add(key);
-            return { src, alt, className, lazyLoaded, size: "Fetching..." }; // Size will be fetched later
+            return { src, alt, className, lazyLoaded, size: "Fetching..." };
           }
         })
         .filter(Boolean);
@@ -43,3 +43,5 @@ export async function extractImages(page) {
     return [];
   }
 }
+
+module.exports = { extractImages };
