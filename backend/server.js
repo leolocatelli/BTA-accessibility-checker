@@ -3,14 +3,14 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const { analyzePageAccessibility } = require("./backend/analyzePageAccessibility");
-const { cleanupScreenshots } = require("./backend/cleanupScreenshots");
-const { calculateScore } = require("./backend/calculateScore");
-const { extractImages } = require("./backend/extractImages");
-const { extractVideos } = require("./backend/extractVideos");
-const { extractText } = require("./backend/extractText");
-const { handleViolations } = require("./backend/handleViolations.cjs");
-const { measureLoadTime } = require("./backend/measureLoadTime");
+const { analyzePageAccessibility } = require("./analyzePageAccessibility");
+const { cleanupScreenshots } = require("./cleanupScreenshots");
+const { calculateScore } = require("./calculateScore");
+const { extractImages } = require("./extractImages");
+const { extractVideos } = require("./extractVideos");
+const { extractText } = require("./extractText");
+const { handleViolations } = require("./handleViolations.cjs");
+const { measureLoadTime } = require("./measureLoadTime");
 
 const app = express();
 const PORT = process.env.PORT || 4000;

@@ -1,1 +1,1 @@
-web: npm run start --prefix accessibility-checker
+web: npm run start
