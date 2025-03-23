@@ -43,7 +43,7 @@ async function handleViolations(page, results) {
           else if (elementClass) finalSelector = `.${elementClass.split(" ")[0]}`;
 
           // ✅ Caminho corrigido para funcionar no Render
-          const screenshotDir = path.join(__dirname, "public", "screenshots");
+          const screenshotDir = path.join(__dirname, "public/screenshots");
           if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
 
           const screenshotPath = path.join(screenshotDir, `${Date.now()}.png`);

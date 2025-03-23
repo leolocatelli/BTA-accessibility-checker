@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 const path = require("path");
-app.use("/screenshots", express.static(path.join(__dirname, "accessibility-checker/public/screenshots")));
+app.use("/screenshots", express.static(path.join(__dirname, "public/screenshots")));
 
 
 
