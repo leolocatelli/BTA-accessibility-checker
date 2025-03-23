@@ -1,4 +1,4 @@
-export function calculateScore(violations = [], images = [], checkedImages = {}, videos = [], checkedVideos = {}, textContent = [], checkedTexts = {}) {
+function calculateScore(violations = [], images = [], checkedImages = {}, videos = [], checkedVideos = {}, textContent = [], checkedTexts = {}) {
   let score = 0;
 
   // Ensure checked objects are valid
@@ -32,3 +32,4 @@ export function calculateScore(violations = [], images = [], checkedImages = {},
   // 🔹 Ensure the score is within the valid range (0-100)
   return Math.min(100, Math.max(0, Math.round(score)));
 }
+module.exports = { calculateScore };

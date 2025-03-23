@@ -1,7 +1,7 @@
-import { AxePuppeteer } from "@axe-core/puppeteer";
-import puppeteer from "puppeteer";
+const { AxePuppeteer } = require("@axe-core/puppeteer");
+const puppeteer = require("puppeteer");
 
-export async function analyzePageAccessibility(url) {
+async function analyzePageAccessibility(url) {
   let browser;
 
   try {
@@ -60,3 +60,5 @@ export async function analyzePageAccessibility(url) {
     throw error;
   }
 }
+
+module.exports = { analyzePageAccessibility };

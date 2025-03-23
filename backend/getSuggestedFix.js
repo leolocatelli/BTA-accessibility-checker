@@ -1,4 +1,4 @@
-export function getSuggestedFix(violationId) {
+function getSuggestedFix(violationId) {
     const fixes = {
       "color-contrast": "Ensure text and background colors have at least a 4.5:1 contrast ratio.",
       "heading-order": "Ensure headings follow correct semantic order (h1 > h2 > h3, etc.).",
@@ -7,4 +7,4 @@ export function getSuggestedFix(violationId) {
     };
     return fixes[violationId] || "Refer to WCAG guidelines for further details.";
   }
-  
+  module.exports = { getSuggestedFix };

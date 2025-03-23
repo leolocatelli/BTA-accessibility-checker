@@ -15,6 +15,11 @@ const { measureLoadTime } = require("./accessibility-checker/src/utils/measureLo
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+const path = require("path");
+app.use("/screenshots", express.static(path.join(__dirname, "accessibility-checker/public/screenshots")));
+
+
+
 app.use(cors());
 app.use(bodyParser.json());
 
