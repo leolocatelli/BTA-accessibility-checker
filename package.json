@@ -2,10 +2,12 @@
   "name": "accessibility-checker-wrapper",
   "version": "1.0.0",
   "scripts": {
-    "start": "npm run start --prefix accessibility-checker",
-    "heroku-postbuild": "npm install --prefix accessibility-checker && npm run build --prefix accessibility-checker",
-     "postinstall": "cd accessibility-checker && npm install"
-  },
+  "start": "npm run start --prefix accessibility-checker",
+  "heroku-prebuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix accessibility-checker",
+  "heroku-postbuild": "npm run build --prefix accessibility-checker",
+  "postinstall": "cd accessibility-checker && npm install"
+}
+,
   "engines": {
     "node": "18.x"
   }
