@@ -2,7 +2,7 @@
   "name": "accessibility-checker-wrapper",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js",
+    "start": "npm run start --prefix accessibility-checker",
     "heroku-postbuild": "cd accessibility-checker && npm install && npm run build"
   },
   "dependencies": {
