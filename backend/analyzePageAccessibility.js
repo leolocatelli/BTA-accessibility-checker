@@ -5,8 +5,8 @@ async function analyzePageAccessibility(url) {
   let browser;
 
   try {
-    // Heroku uses a custom Chrome path
     const isHeroku = process.env.NODE_ENV === "production" && process.env.RENDER !== "true";
+    const isRender = process.env.RENDER === "true";
 
     browser = await puppeteer.launch({
       headless: true,
@@ -21,7 +21,11 @@ async function analyzePageAccessibility(url) {
         "--single-process",
         "--disable-extensions"
       ],
-      executablePath: isHeroku ? "/app/.apt/usr/bin/google-chrome-stable" : undefined
+      executablePath: isHeroku
+        ? "/app/.apt/usr/bin/google-chrome-stable"
+        : isRender
+        ? puppeteer.executablePath()
+        : undefined
     });
 
     const page = await browser.newPage();
