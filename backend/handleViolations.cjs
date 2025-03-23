@@ -42,7 +42,8 @@ async function handleViolations(page, results) {
           if (elementId) finalSelector = `#${elementId}`;
           else if (elementClass) finalSelector = `.${elementClass.split(" ")[0]}`;
 
-          const screenshotDir = path.join(__dirname, "../accessibility-checker/public/screenshots");
+          // ✅ Caminho corrigido para funcionar no Render
+          const screenshotDir = path.join(__dirname, "public", "screenshots");
           if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
 
           const screenshotPath = path.join(screenshotDir, `${Date.now()}.png`);
@@ -71,7 +72,7 @@ async function handleViolations(page, results) {
               selector: `\`${finalSelector}\``,
               description: elementDescription || "Unknown element",
               issueType,
-              screenshot: `/screenshots/${path.basename(screenshotPath)}`,
+              screenshot: `/screenshots/${path.basename(screenshotPath)}`, // URL pública
             });
           }
         } catch (error) {
