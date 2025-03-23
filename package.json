@@ -1,10 +1,10 @@
 {
   "name": "accessibility-checker-wrapper",
   "version": "1.0.0",
- "scripts": {
+"scripts": {
   "start": "node server.js",
-  "postinstall": "npx puppeteer browsers install chrome",
-  "heroku-postbuild": "cd accessibility-checker && npm install && npm run build"
+  "heroku-postbuild": "cd accessibility-checker && npm install && npm run build",
+  "postinstall": "npx puppeteer browsers install chrome"
 },
   "dependencies": {
     "@axe-core/puppeteer": "^4.10.1",
