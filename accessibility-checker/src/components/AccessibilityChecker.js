@@ -38,8 +38,10 @@ export default function AccessibilityChecker() {
         setTimeout(async () => {
           try {
             console.log("🗑️ Triggering screenshot deletion...");
-            const deleteResponse = await fetch("/api/delete-screenshots", { method: "POST" });
-
+            const deleteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-screenshots`, {
+              method: "POST"
+            });
+            
             if (!deleteResponse.ok) {
               console.error("❌ Error deleting screenshots:", await deleteResponse.text());
             } else {
