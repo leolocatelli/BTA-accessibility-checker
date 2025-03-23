@@ -23,7 +23,7 @@ async function analyzePageAccessibility(url) {
       ],
       executablePath: isHeroku ? "/app/.apt/usr/bin/google-chrome-stable" : undefined,
     });
-
+// teste
     const page = await browser.newPage();
     await page.setBypassCSP(true);
 
