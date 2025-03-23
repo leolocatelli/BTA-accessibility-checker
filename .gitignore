@@ -39,3 +39,4 @@ src/utils/measurePageSize*.js
 .next/
 out/
 public/screenshots/
+backend/.cache
