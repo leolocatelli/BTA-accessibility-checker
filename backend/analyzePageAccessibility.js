@@ -21,11 +21,7 @@ async function analyzePageAccessibility(url) {
         "--single-process",
         "--disable-extensions"
       ],
-      executablePath: isHeroku
-        ? "/app/.apt/usr/bin/google-chrome-stable"
-        : isRender
-        ? puppeteer.executablePath()
-        : undefined,
+      executablePath: isHeroku ? "/app/.apt/usr/bin/google-chrome-stable" : undefined,
     });
 
     const page = await browser.newPage();
