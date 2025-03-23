@@ -1,7 +1,7 @@
 import { analyzePageAccessibility } from "../../../../backend/analyzePageAccessibility.js";
-import { extractImages } from "./extractImages";
-import { extractVideos } from "./extractVideos";
-import { handleViolations } from "./handleViolations.cjs";
+import { extractImages } from "../../../backend/extractImages.js";
+import { extractVideos } from "../../../backend/extractVideos.js";
+import { handleViolations } from "../../../backend/handleViolations.cjs/index.js";
 import { calculateScore } from "../../../../backend/calculateScore.js";
 import { cleanupScreenshots } from "../../../../backend/cleanupScreenshots.js";
 import { measurePageSize } from "./measurePageSize";

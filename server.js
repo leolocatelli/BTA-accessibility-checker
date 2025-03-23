@@ -6,11 +6,11 @@ const bodyParser = require("body-parser");
 const { analyzePageAccessibility } = require("./backend/analyzePageAccessibility");
 const { cleanupScreenshots } = require("./backend/cleanupScreenshots");
 const { calculateScore } = require("./backend/calculateScore");
-const { extractImages } = require("./accessibility-checker/src/utils/extractImages");
-const { extractVideos } = require("./accessibility-checker/src/utils/extractVideos");
-const { extractText } = require("./accessibility-checker/src/utils/extractText");
-const { handleViolations } = require("./accessibility-checker/src/utils/handleViolations.cjs");
-const { measureLoadTime } = require("./accessibility-checker/src/utils/measureLoadTime");
+const { extractImages } = require("./backend/extractImages");
+const { extractVideos } = require("./backend/extractVideos");
+const { extractText } = require("./backend/extractText");
+const { handleViolations } = require("./backend/handleViolations.cjs");
+const { measureLoadTime } = require("./backend/measureLoadTime");
 
 const app = express();
 const PORT = process.env.PORT || 4000;

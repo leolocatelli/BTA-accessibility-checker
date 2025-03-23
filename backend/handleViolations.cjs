@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getSuggestedFix } = require("../../../backend/getSuggestedFix.js");
+const { getSuggestedFix } = require("./getSuggestedFix.js");
 
 async function handleViolations(page, results) {
   console.log("📸 Capturing WCAG Violation Screenshots...");
@@ -42,7 +42,7 @@ async function handleViolations(page, results) {
           if (elementId) finalSelector = `#${elementId}`;
           else if (elementClass) finalSelector = `.${elementClass.split(" ")[0]}`;
 
-          const screenshotDir = path.join(__dirname, "../../public/screenshots");
+          const screenshotDir = path.join(__dirname, "../accessibility-checker/public/screenshots");
           if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
 
           const screenshotPath = path.join(screenshotDir, `${Date.now()}.png`);
