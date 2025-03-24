@@ -1,4 +1,4 @@
-async function extractText(page, minCharLength = 50) {
+async function extractText(page, minCharLength = 30) {
     try {
       const ignoredClasses = [
         "ot-sdk-eight",
