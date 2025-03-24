@@ -1,21 +1,38 @@
-async function extractText(page, minCharLength = 30) {
-    try {
-      const ignoredClasses = [
-        "ot-sdk-eight",
-        "ot-sdk-columns",
-        "footer-copyright__container",
-        "prefooter__data",
-        "ot-sdk-row",
-      ];
-  
-      const texts = await page.evaluate((minLength, ignoredClasses) => {
+async function extractText(page, minCharLength = 40) {
+  try {
+    const ignoredClasses = [
+      "ot-sdk-eight",
+      "ot-sdk-columns",
+      "footer-copyright__container",
+      "prefooter__data",
+      "ot-sdk-row",
+    ];
+
+    const allowedTdClasses = [
+      "ImgRTextL",
+      
+    ];
+
+    const texts = await page.evaluate(
+      (minLength, ignoredClasses, allowedTdClasses) => {
         const uniqueTexts = new Set();
-  
-        return Array.from(document.querySelectorAll("p, font"))
+
+        const isAllowedTd = (el) => {
+          if (el.tagName.toLowerCase() !== "td") return true; // Só filtra td
+          if (!el.classList) return false;
+          return allowedTdClasses.some((cls) => el.classList.contains(cls));
+        };
+
+        return Array.from(document.querySelectorAll("p, font, td"))
           .filter((el) => {
+            if (!isAllowedTd(el)) return false;
+
             let parent = el;
             while (parent) {
-              if (parent.classList && ignoredClasses.some((cls) => parent.classList.contains(cls))) {
+              if (
+                parent.classList &&
+                ignoredClasses.some((cls) => parent.classList.contains(cls))
+              ) {
                 return false;
               }
               parent = parent.parentElement;
@@ -29,15 +46,18 @@ async function extractText(page, minCharLength = 30) {
             uniqueTexts.add(text);
             return true;
           });
-      }, minCharLength, ignoredClasses);
-  
-      console.log("📜 Extracted Unique Texts:", texts);
-      return texts;
-    } catch (error) {
-      console.error("❌ Error extracting text:", error);
-      return [];
-    }
+      },
+      minCharLength,
+      ignoredClasses,
+      allowedTdClasses
+    );
+
+    console.log("📜 Extracted Filtered Texts:", texts);
+    return texts;
+  } catch (error) {
+    console.error("❌ Error extracting text:", error);
+    return [];
   }
-  
-  module.exports = { extractText };
-  
+}
+
+module.exports = { extractText };
