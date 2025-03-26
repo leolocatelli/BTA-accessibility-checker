@@ -69,7 +69,7 @@ export default function ViolationsList({ violations }) {
                           </pre>
 
                           {/* 🖼️ Screenshot Preview */}
-                          {el.screenshot && (
+                          {/* {el.screenshot && (
                             // <img
                             //   src={el.screenshot}
                             //   alt="Image Deleted"
@@ -77,10 +77,10 @@ export default function ViolationsList({ violations }) {
                             // />
                             <img
                               src={`${process.env.NEXT_PUBLIC_API_URL}${el.screenshot}`}
-                              alt="WCAG Violation Screenshot"
+                              alt="Image Deleted"
                               className="w-auto h-[180px] rounded-lg shadow-md mt-3"
                             />
-                          )}
+                          )} */}
                         </li>
                       ))}
                     </ul>

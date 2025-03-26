@@ -3,6 +3,7 @@
   "version": "1.0.0",
 "scripts": {
   "start": "npm run start --prefix accessibility-checker",
+  "dev": "next dev --turbopack",
   "heroku-postbuild": "npm install --save-dev typescript @types/react --prefix accessibility-checker && npm run build --prefix accessibility-checker",
   "postinstall": "cd accessibility-checker && npm install"
 },

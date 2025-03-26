@@ -3,6 +3,7 @@
   "version": "1.0.0",
 "scripts": {
   "start": "node server.js",
+  "dev": "next dev --turbopack",
   "postinstall": "npx puppeteer browsers install chrome",
    "install:chrome": "npx puppeteer browsers install chrome"
 },

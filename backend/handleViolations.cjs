@@ -62,17 +62,20 @@ async function handleViolations(page, results) {
             };
 
             console.log(`📸 Capturing screenshot for ${finalSelector}`, clip);
+            
+            // Screenshot generation disabled temporarily for performance and stability
 
-            await page.screenshot({
-              path: screenshotPath,
-              clip,
-            });
+            // await page.screenshot({
+            //   path: screenshotPath,
+            //   clip,
+            // });
 
             affectedElements.push({
               selector: `\`${finalSelector}\``,
               description: elementDescription || "Unknown element",
               issueType,
-              screenshot: `/screenshots/${path.basename(screenshotPath)}`, // URL pública
+              // screenshot: `/screenshots/${path.basename(screenshotPath)}`, // URL pública
+              screenshot: null, // Screenshot temporarily disabled
             });
           }
         } catch (error) {
