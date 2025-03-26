@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const screenshotDir = path.join(__dirname, "public/screenshots");
+const screenshotDir = path.join(__dirname, "../../public/screenshots");
 
 function cleanupScreenshots() {
   if (!fs.existsSync(screenshotDir)) return;
