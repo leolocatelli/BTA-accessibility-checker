@@ -40,3 +40,7 @@ src/utils/measurePageSize*.js
 out/
 public/screenshots/
 backend/.cache
+
+
+.cache/
+.env*
