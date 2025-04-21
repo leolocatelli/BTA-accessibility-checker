@@ -60,6 +60,13 @@ function getSuggestedFix(violationId) {
       wcagLink:
         "https://www.w3.org/WAI/WCAG21/Understanding/headings-and-labels.html", // 2.4.6
     },
+
+    "table-headers": {
+      message:
+        "Some <th> elements may be empty or lack meaningful content. Ensure that all table headers contain clear and descriptive text to help users understand the structure of the data.",
+      wcagLink:
+        "https://www.w3.org/WAI/WCAG21/quickref/#info-and-relationships",
+    },
   };
 
   return (
