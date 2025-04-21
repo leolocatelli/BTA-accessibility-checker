@@ -83,11 +83,14 @@ async function handleViolations(page, results) {
         }
       }
 
+      const fix = getSuggestedFix(violation.id);
+
       return {
         description: violation.description,
         impact: violation.impact,
         affectedElements,
-        suggestedFix: getSuggestedFix(violation.id),
+        suggestedFix: fix.message,
+        wcagLink: fix.wcagLink,
       };
     })
   );

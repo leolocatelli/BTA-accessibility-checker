@@ -29,7 +29,8 @@ export default function ViolationsList({ violations }) {
               className="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 font-semibold flex justify-between items-center rounded-lg transition"
               onClick={() => toggleExpand(index)}
             >
-              <span className="text-red-600">{violation.description}</span>
+              <span className="text-red-600 text-sm">{violation.description}</span>
+
               {expandedIndex === index ? (
                 <ChevronUp className="w-5 h-5 text-gray-600" />
               ) : (
@@ -41,9 +42,20 @@ export default function ViolationsList({ violations }) {
             {expandedIndex === index && (
               <div className="p-5 border-t border-gray-300 bg-white">
                 {/* Impact */}
-                <p className="text-sm text-gray-700">
-                  <strong>Impact:</strong> {violation.impact}
+                <p className="text-sm text-gray-700 mt-4">
+                  <strong>Suggested Fix:</strong> {violation.suggestedFix}
                 </p>
+
+                {violation.wcagLink && (
+                  <a
+                    href={violation.wcagLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 underline mt-2 inline-block hover:text-blue-800 transition"
+                  >
+                    View related WCAG guideline ↗
+                  </a>
+                )}
 
                 {/* Affected Elements Section */}
                 {violation.affectedElements?.length > 0 && (
@@ -88,9 +100,9 @@ export default function ViolationsList({ violations }) {
                 )}
 
                 {/* ✅ Suggested Fix */}
-                <p className="text-sm text-gray-700 mt-4">
+                {/* <p className="text-sm text-gray-700 mt-4">
                   <strong>Suggested Fix:</strong> {violation.suggestedFix}
-                </p>
+                </p> */}
               </div>
             )}
           </li>

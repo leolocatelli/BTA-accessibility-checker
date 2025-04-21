@@ -76,24 +76,24 @@ export default function AccessibilityChecker() {
       setReport(data);
       console.log("✅ Accessibility check completed!");
 
-      if (!deleteScheduled) {
-        setDeleteScheduled(true);
-        setTimeout(async () => {
-          try {
-            console.log("🗑️ Triggering screenshot deletion...");
-            const deleteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-screenshots`, {
-              method: "POST",
-            });
-            if (!deleteResponse.ok) {
-              console.error("❌ Error deleting screenshots:", await deleteResponse.text());
-            } else {
-              console.log("✅ Screenshots deleted successfully");
-            }
-          } catch (error) {
-            console.error("❌ Failed to call delete API:", error);
-          }
-        }, 180000);
-      }
+      // if (!deleteScheduled) {
+      //   setDeleteScheduled(true);
+      //   setTimeout(async () => {
+      //     try {
+      //       console.log("🗑️ Triggering screenshot deletion...");
+      //       const deleteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-screenshots`, {
+      //         method: "POST",
+      //       });
+      //       if (!deleteResponse.ok) {
+      //         console.error("❌ Error deleting screenshots:", await deleteResponse.text());
+      //       } else {
+      //         console.log("✅ Screenshots deleted successfully");
+      //       }
+      //     } catch (error) {
+      //       console.error("❌ Failed to call delete API:", error);
+      //     }
+      //   }, 180000);
+      // }
     } catch (error) {
       console.error("❌ Error checking accessibility:", error);
       alert("Something went wrong. Please try again later.");

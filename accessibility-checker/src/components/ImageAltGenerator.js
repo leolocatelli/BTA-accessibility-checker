@@ -1,18 +1,18 @@
-"use client"; // ✅ Ensure it's a client component
+"use client";
 import { useState } from "react";
 import { Loader2, XCircle, AlertTriangle, Clipboard, CheckCircle } from "lucide-react";
 
-const altCache = {}; // 🔹 Cache to avoid redundant API calls
-const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/"; // 🔹 Base URL for partial inputs
+const altCache = {};
+const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/";
 
 export default function ImageAltGenerator() {
-  const [imageUrls, setImageUrls] = useState([]);
+  const [imageInputs, setImageInputs] = useState([]); // [{ url, keyword }]
   const [altResults, setAltResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState("");
   const [error, setError] = useState("");
-  const [copiedIndex, setCopiedIndex] = useState(null); // ✅ Track copied text
-  const CHARACTER_LIMIT = 150; 
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const CHARACTER_LIMIT = 150;
 
   const handleUrlInput = (e) => {
     const rawInputs = e.target.value
@@ -24,18 +24,20 @@ export default function ImageAltGenerator() {
       url.startsWith("http://") || url.startsWith("https://") ? url : `${BASE_URL}${url}`
     );
 
-    const duplicates = processedUrls.filter((url) => imageUrls.includes(url));
-    setWarning(duplicates.length > 0 ? "Some images were already added and were skipped." : "");
-    
-    setImageUrls([...new Set([...imageUrls, ...processedUrls])]);
+    const newInputs = processedUrls
+      .filter((url) => !imageInputs.some((input) => input.url === url))
+      .map((url) => ({ url, keyword: "" }));
+
+    setWarning(newInputs.length < processedUrls.length ? "Some images were already added and were skipped." : "");
+    setImageInputs((prev) => [...prev, ...newInputs]);
   };
 
   const removeImage = (urlToRemove) => {
-    setImageUrls((prevUrls) => prevUrls.filter((url) => url !== urlToRemove));
+    setImageInputs((prev) => prev.filter((input) => input.url !== urlToRemove));
   };
 
   const generateAltTexts = async () => {
-    if (imageUrls.length === 0) return;
+    if (imageInputs.length === 0) return;
     setLoading(true);
     setAltResults([]);
     setError("");
@@ -43,23 +45,25 @@ export default function ImageAltGenerator() {
     const newResults = [];
 
     try {
-      for (const url of imageUrls) {
-        if (altCache[url]) {
-          newResults.push({ url, altText: altCache[url] });
+      for (const { url, keyword } of imageInputs) {
+        const cacheKey = keyword ? `${url}|${keyword}` : url;
+
+        if (altCache[cacheKey]) {
+          newResults.push({ url, altText: altCache[cacheKey] });
           continue;
         }
 
         const response = await fetch("/api/generate-alt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: url, charLimit: CHARACTER_LIMIT }),
+          body: JSON.stringify({ imageUrl: url, keyword, charLimit: CHARACTER_LIMIT }),
         });
 
         if (!response.ok) throw new Error(`Server error: ${response.status} ${response.statusText}`);
 
         const data = await response.json();
         if (data.altText) {
-          altCache[url] = data.altText;
+          altCache[cacheKey] = data.altText;
           newResults.push({ url, altText: data.altText });
         }
       }
@@ -75,12 +79,8 @@ export default function ImageAltGenerator() {
 
   const handleCopy = (index, altText) => {
     navigator.clipboard.writeText(altText);
-    setCopiedIndex(index); // ✅ Set copied state
-
-    // ⏳ Reset after 2 seconds
-    setTimeout(() => {
-      setCopiedIndex(null);
-    }, 2000);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
@@ -98,17 +98,30 @@ export default function ImageAltGenerator() {
         </div>
       )}
 
-      {imageUrls.length > 0 && (
+      {imageInputs.length > 0 && (
         <div className="mt-4 bg-gray-100 p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2">Uploaded Images:</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {imageUrls.map((url, index) => (
-              <div key={index} className="relative group flex items-center justify-center">
+            {imageInputs.map((input, index) => (
+              <div key={index} className="relative group flex flex-col items-center">
                 <div className="relative w-full h-32 md:h-36 flex items-center justify-center bg-gray-200 rounded-md border overflow-hidden">
-                  <img src={url} alt="Uploaded Preview" className="w-auto max-h-full object-contain rounded-md" />
+                  <img src={input.url} alt="Uploaded Preview" className="w-auto max-h-full object-contain rounded-md" />
                 </div>
+
+                <input
+                  type="text"
+                  placeholder="Optional keyword..."
+                  className="mt-2 p-1 border rounded w-full text-sm"
+                  value={input.keyword}
+                  onChange={(e) => {
+                    const updated = [...imageInputs];
+                    updated[index].keyword = e.target.value;
+                    setImageInputs(updated);
+                  }}
+                />
+
                 <button
-                  onClick={() => removeImage(url)}
+                  onClick={() => removeImage(input.url)}
                   className="absolute top-1 right-1 bg-gray-700/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-900"
                 >
                   <XCircle className="w-5 h-5" />

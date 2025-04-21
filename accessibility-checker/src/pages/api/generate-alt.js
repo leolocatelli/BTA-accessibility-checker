@@ -11,8 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { imageUrl, charLimit = 150 } = req.body; // Ideal charLimit = 400
-
+  const { imageUrl, keyword = "", charLimit = 150 } = req.body;
 
   if (!imageUrl) {
     return res.status(400).json({ error: "No image URL provided." });
@@ -21,21 +20,23 @@ export default async function handler(req, res) {
   try {
     console.log(`📥 Downloading & resizing image: ${imageUrl}`);
 
-    // Download Image from URL
     const response = await fetch(imageUrl);
     if (!response.ok) throw new Error("Failed to download image.");
-
     const imageBuffer = await response.buffer();
 
-    // Resize Image to 512px Width (Maintain Aspect Ratio)
-    const resizedImageBuffer = await sharp(imageBuffer).resize({ width: 512 }).toBuffer();
+    const resizedImageBuffer = await sharp(imageBuffer)
+      .resize({ width: 512 })
+      .toBuffer();
     const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString("base64")}`;
 
-    console.log(`📤 Sending resized image to GPT-4o Vision`);
+    console.log(`📤 Sending image to OpenAI with context keyword: ${keyword || "none"}`);
 
-    // Send Image to OpenAI GPT-4o Vision
+    const userPrompt = keyword
+      ? `Describe this image in a concise way. Be sure to mention the keyword context: "${keyword}".`
+      : "Describe this image in a concise way.";
+
     const responseAI = await openai.chat.completions.create({
-      model: "gpt-4o", // ✅ Use GPT-4o (supports images)
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -44,17 +45,18 @@ export default async function handler(req, res) {
         {
           role: "user",
           content: [
-            { type: "text", text: "Describe this image in a concise way:" },
+            { type: "text", text: userPrompt },
             { type: "image_url", image_url: { url: base64Image } },
           ],
         },
       ],
-      max_tokens: 100, // ✅ Keep max tokens low to reduce costs ideal max_tokens = 300
+      max_tokens: 100,
     });
 
-    console.log(`✅ API Response:`, responseAI.choices[0]?.message?.content);
+    const altText = responseAI.choices[0]?.message?.content || "No ALT text generated";
+    console.log(`✅ ALT Text:`, altText);
 
-    return res.status(200).json({ altText: responseAI.choices[0]?.message?.content || "No ALT text generated" });
+    return res.status(200).json({ altText });
   } catch (error) {
     console.error("❌ OpenAI API Error:", error);
     return res.status(500).json({ error: "Failed to generate ALT text.", details: error.message });
