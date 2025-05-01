@@ -75,9 +75,6 @@ export default function CharacterCounter() {
         <button onClick={() => updateText(transforms.upper)} className={buttonStyle}>
           UPPER CASE
         </button>
-        <button onClick={() => updateText(transforms.capitalized)} className={buttonStyle}>
-          Capitalized Case
-        </button>
         <button onClick={() => updateText(transforms.title)} className={buttonStyle}>
           Title Case
         </button>
