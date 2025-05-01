@@ -39,7 +39,7 @@ async function extractImages(page) {
         .filter(Boolean);
     }, ignoredClasses);
   } catch (error) {
-    console.error("❌ Error extracting images:", error);
+    // console.error("❌ Error extracting images:", error);
     return [];
   }
 }

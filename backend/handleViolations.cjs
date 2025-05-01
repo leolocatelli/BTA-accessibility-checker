@@ -3,7 +3,7 @@ const path = require("path");
 const { getSuggestedFix } = require("./getSuggestedFix.js");
 
 async function handleViolations(page, results) {
-  console.log("📸 Capturing WCAG Violation Screenshots...");
+  // console.log("📸 Capturing WCAG Violation Screenshots...");
 
   const violations = await Promise.all(
     results.violations.map(async (violation) => {
@@ -61,7 +61,7 @@ async function handleViolations(page, results) {
               height: Math.max(Math.min(boundingBox.height + PADDING_Y * 2, viewport.height - boundingBox.y), 100),
             };
 
-            console.log(`📸 Capturing screenshot for ${finalSelector}`, clip);
+            // console.log(`📸 Capturing screenshot for ${finalSelector}`, clip);
             
             // Screenshot generation disabled temporarily for performance and stability
 
@@ -84,6 +84,7 @@ async function handleViolations(page, results) {
       }
 
       const fix = getSuggestedFix(violation.id);
+      console.log("➡️ Violation ID:", violation.id);
 
       return {
         description: violation.description,

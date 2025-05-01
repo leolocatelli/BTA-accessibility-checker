@@ -17,9 +17,9 @@ function cleanupScreenshots() {
     if (now - stats.mtimeMs > EXPIRATION_TIME) {
       try {
         fs.unlinkSync(filePath);
-        console.log(`🗑️ Deleted old screenshot: ${filePath}`);
+        // console.log(`🗑️ Deleted old screenshot: ${filePath}`);
       } catch (err) {
-        console.error(`❌ Failed to delete ${filePath}:`, err);
+        // console.error(`❌ Failed to delete ${filePath}:`, err);
       }
     }
   });
