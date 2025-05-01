@@ -53,7 +53,9 @@ export default async function handler(req, res) {
       max_tokens: 100,
     });
 
-    const altText = responseAI.choices[0]?.message?.content || "No ALT text generated";
+    const rawAltText = responseAI.choices[0]?.message?.content || "No ALT text generated";
+    const altText = rawAltText.replace(/"/g, "'"); // ✅ troca aspas duplas por simples
+
     console.log(`✅ ALT Text:`, altText);
 
     return res.status(200).json({ altText });

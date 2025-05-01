@@ -6,7 +6,7 @@ import TabsNavigation from "../components/TabsNavigation";
 import AccessibilityChecker from "../components/AccessibilityChecker";
 import ImageAltGenerator from "../components/ImageAltGenerator";
 import ColorContrastChecker from "../components/ColorContrastChecker";
-
+import CharacterCounter from "../components/CharacterCounter";
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");
 
@@ -33,6 +33,7 @@ export default function Home() {
         {activeTab === "accessibility" && <AccessibilityChecker />}
         {activeTab === "image-alt" && <ImageAltGenerator />}
         {activeTab === "contrast" && <ColorContrastChecker />}
+        {activeTab === "text-tools" && <CharacterCounter />}
       </div>
     </div>
   );
