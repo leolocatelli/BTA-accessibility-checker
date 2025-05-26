@@ -1,12 +1,23 @@
 "use client";
 import { useState } from "react";
-import { Loader2, XCircle, AlertTriangle, Clipboard, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  XCircle,
+  AlertTriangle,
+  Clipboard,
+  CheckCircle,
+} from "lucide-react";
 
 const altCache = {};
 const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/";
 
+function convertGoogleDriveLink(url) {
+  const match = url.match(/\/d\/([^/]+)\//);
+  return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : url;
+}
+
 export default function ImageAltGenerator() {
-  const [imageInputs, setImageInputs] = useState([]); // [{ url, keyword }]
+  const [imageInputs, setImageInputs] = useState([]);
   const [altResults, setAltResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState("");
@@ -17,18 +28,24 @@ export default function ImageAltGenerator() {
   const handleUrlInput = (e) => {
     const rawInputs = e.target.value
       .split("\n")
-      .map((url) => url.trim())
+      .map((url) => convertGoogleDriveLink(url.trim()))
       .filter((url) => url);
 
     const processedUrls = rawInputs.map((url) =>
-      url.startsWith("http://") || url.startsWith("https://") ? url : `${BASE_URL}${url}`
+      url.startsWith("http://") || url.startsWith("https://")
+        ? url
+        : `${BASE_URL}${url}`
     );
 
     const newInputs = processedUrls
       .filter((url) => !imageInputs.some((input) => input.url === url))
       .map((url) => ({ url, keyword: "" }));
 
-    setWarning(newInputs.length < processedUrls.length ? "Some images were already added and were skipped." : "");
+    setWarning(
+      newInputs.length < processedUrls.length
+        ? "Some images were already added and were skipped."
+        : ""
+    );
     setImageInputs((prev) => [...prev, ...newInputs]);
   };
 
@@ -56,10 +73,17 @@ export default function ImageAltGenerator() {
         const response = await fetch("/api/generate-alt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: url, keyword, charLimit: CHARACTER_LIMIT }),
+          body: JSON.stringify({
+            imageUrl: url,
+            keyword,
+            charLimit: CHARACTER_LIMIT,
+          }),
         });
 
-        if (!response.ok) throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        if (!response.ok)
+          throw new Error(
+            `Server error: ${response.status} ${response.statusText}`
+          );
 
         const data = await response.json();
         if (data.altText) {
@@ -71,7 +95,9 @@ export default function ImageAltGenerator() {
       setAltResults(newResults);
     } catch (error) {
       console.error("❌ Error generating ALT texts:", error);
-      setError(error.message);
+      setError(
+        "Unable to access some images. Please ensure the link is valid and the file is publicly shared."
+      );
     } finally {
       setLoading(false);
     }
@@ -103,9 +129,28 @@ export default function ImageAltGenerator() {
           <h3 className="text-lg font-semibold mb-2">Uploaded Images:</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {imageInputs.map((input, index) => (
-              <div key={index} className="relative group flex flex-col items-center">
+              <div
+                key={index}
+                className="relative group flex flex-col items-center"
+              >
                 <div className="relative w-full h-32 md:h-36 flex items-center justify-center bg-gray-200 rounded-md border overflow-hidden">
-                  <img src={input.url} alt="Uploaded Preview" className="w-auto max-h-full object-contain rounded-md" />
+                  {input.url.includes("drive.google.com") ? (
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png"
+                      alt="Google Drive File"
+                      className="w-12 h-12 object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={input.url}
+                      alt="Uploaded Preview"
+                      className="w-auto max-h-full object-contain rounded-md"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/150?text=Image+Unavailable";
+                      }}
+                    />
+                  )}
                 </div>
 
                 <input
@@ -132,7 +177,11 @@ export default function ImageAltGenerator() {
         </div>
       )}
 
-      <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={generateAltTexts} disabled={loading}>
+      <button
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        onClick={generateAltTexts}
+        disabled={loading}
+      >
         {loading ? "Generating..." : "Generate ALT Texts"}
       </button>
 
@@ -140,15 +189,30 @@ export default function ImageAltGenerator() {
 
       {altResults.length > 0 && (
         <div className="mt-6 p-5 bg-gray-50 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Generated ALT Texts</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Generated ALT Texts
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {altResults.map((result, index) => (
-              <div key={index} className="p-4 bg-white rounded-lg shadow flex flex-col items-center">
+              <div
+                key={index}
+                className="p-4 bg-white rounded-lg shadow flex flex-col items-center"
+              >
                 <div className="relative w-full h-40 flex items-center justify-center rounded-md overflow-hidden">
-                  <img src={result.url} alt="Preview" className="w-auto max-h-full object-contain rounded-md" />
+                  <img
+                    src={
+                      result.url.includes("drive.google.com")
+                        ? "https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png"
+                        : result.url
+                    }
+                    alt="Preview"
+                    className="w-auto max-h-full object-contain rounded-md"
+                  />
                 </div>
 
-                <p className="text-gray-700 text-sm text-center mt-3">{result.altText}</p>
+                <p className="text-gray-700 text-sm text-center mt-3">
+                  {result.altText}
+                </p>
 
                 <button
                   className="mt-2 flex items-center gap-2 text-blue-600 text-xs border border-blue-500 px-3 py-1 rounded-md hover:bg-blue-100 transition"

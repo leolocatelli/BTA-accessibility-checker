@@ -168,12 +168,29 @@ function getSuggestedFix(violationId) {
       wcagLink:
         "https://dequeuniversity.com/rules/axe/4.8/aria-valid-attr-value?application=axeAPI",
     },
+
+    "th-has-visible-text": {
+      message:
+        "Table headers (<th>) must contain visible and descriptive text to help users understand the table structure.",
+      wcagLink:
+        "https://dequeuniversity.com/rules/axe/4.8/th-has-visible-text?application=axeAPI",
+    },
+
     "aria-required-children": {
       message:
         "An element with a specific ARIA role requires certain child elements. Add the required child roles.",
       wcagLink:
         "https://dequeuniversity.com/rules/axe/4.8/aria-required-children?application=axeAPI",
     },
+
+"meta-viewport": {
+  message:
+    "The <meta name='viewport'> tag should not prevent users from zooming. Avoid using 'maximum-scale=1' or 'user-scalable=no'.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/meta-viewport?application=axeAPI",
+},
+
+
   };
 
   return (
