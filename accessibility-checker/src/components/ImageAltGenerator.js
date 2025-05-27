@@ -49,8 +49,10 @@ export default function ImageAltGenerator() {
     setImageInputs((prev) => [...prev, ...newInputs]);
   };
 
-  const removeImage = (urlToRemove) => {
-    setImageInputs((prev) => prev.filter((input) => input.url !== urlToRemove));
+  const removeImage = (indexToRemove) => {
+    setImageInputs((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const generateAltTexts = async () => {
@@ -130,7 +132,7 @@ export default function ImageAltGenerator() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {imageInputs.map((input, index) => (
               <div
-                key={index}
+                key={input.url}
                 className="relative group flex flex-col items-center"
               >
                 <div className="relative w-full h-32 md:h-36 flex items-center justify-center bg-gray-200 rounded-md border overflow-hidden">
@@ -146,8 +148,14 @@ export default function ImageAltGenerator() {
                       alt="Uploaded Preview"
                       className="w-auto max-h-full object-contain rounded-md"
                       onError={(e) => {
-                        e.currentTarget.src =
-                          "https://via.placeholder.com/150?text=Image+Unavailable";
+                        const fallback = e.currentTarget.parentNode;
+                        fallback.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-gray-500 text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856C18.07 20 20 18.07 20 15.938V8.063C20 5.93 18.07 4 15.938 4H8.063C5.93 4 4 5.93 4 8.063v7.875C4 18.07 5.93 20 8.063 20z" />
+          </svg>
+          <p>Image not available</p>
+        </div>`;
                       }}
                     />
                   )}
@@ -166,7 +174,7 @@ export default function ImageAltGenerator() {
                 />
 
                 <button
-                  onClick={() => removeImage(input.url)}
+                  onClick={() => removeImage(index)}
                   className="absolute top-1 right-1 bg-gray-700/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-900"
                 >
                   <XCircle className="w-5 h-5" />
@@ -195,7 +203,7 @@ export default function ImageAltGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {altResults.map((result, index) => (
               <div
-                key={index}
+                key={result.url}
                 className="p-4 bg-white rounded-lg shadow flex flex-col items-center"
               >
                 <div className="relative w-full h-40 flex items-center justify-center rounded-md overflow-hidden">

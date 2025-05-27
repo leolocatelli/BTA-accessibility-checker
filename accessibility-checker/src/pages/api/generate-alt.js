@@ -22,14 +22,19 @@ export default async function handler(req, res) {
 
     const response = await fetch(imageUrl);
     if (!response.ok) throw new Error("Failed to download image.");
-    const imageBuffer = await response.buffer();
+    const arrayBuffer = await response.arrayBuffer();
+    const imageBuffer = Buffer.from(arrayBuffer);
 
     const resizedImageBuffer = await sharp(imageBuffer)
       .resize({ width: 512 })
       .toBuffer();
-    const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString("base64")}`;
+    const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString(
+      "base64"
+    )}`;
 
-    console.log(`📤 Sending image to OpenAI with context keyword: ${keyword || "none"}`);
+    console.log(
+      `📤 Sending image to OpenAI with context keyword: ${keyword || "none"}`
+    );
 
     const userPrompt = keyword
       ? `Describe this image in a concise way. Be sure to mention the keyword context: "${keyword}".`
@@ -53,7 +58,8 @@ export default async function handler(req, res) {
       max_tokens: 100,
     });
 
-    const rawAltText = responseAI.choices[0]?.message?.content || "No ALT text generated";
+    const rawAltText =
+      responseAI.choices[0]?.message?.content || "No ALT text generated";
     const altText = rawAltText.replace(/"/g, "'"); // ✅ troca aspas duplas por simples
 
     console.log(`✅ ALT Text:`, altText);
@@ -61,6 +67,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ altText });
   } catch (error) {
     console.error("❌ OpenAI API Error:", error);
-    return res.status(500).json({ error: "Failed to generate ALT text.", details: error.message });
+    return res
+      .status(500)
+      .json({ error: "Failed to generate ALT text.", details: error.message });
   }
 }
