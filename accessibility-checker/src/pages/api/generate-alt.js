@@ -22,12 +22,20 @@ export default async function handler(req, res) {
 
     const response = await fetch(imageUrl);
     if (!response.ok) throw new Error("Failed to download image.");
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.startsWith("image/")) {
+      throw new Error("URL does not point to a valid image.");
+    }
+
     const arrayBuffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(arrayBuffer);
 
     const resizedImageBuffer = await sharp(imageBuffer)
       .resize({ width: 512 })
+      .toFormat("jpeg") // Força compatibilidade
       .toBuffer();
+
     const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString(
       "base64"
     )}`;
@@ -60,15 +68,23 @@ export default async function handler(req, res) {
 
     const rawAltText =
       responseAI.choices[0]?.message?.content || "No ALT text generated";
-    const altText = rawAltText.replace(/"/g, "'"); // ✅ troca aspas duplas por simples
+    const altText = rawAltText.replace(/"/g, "'");
 
     console.log(`✅ ALT Text:`, altText);
 
     return res.status(200).json({ altText });
   } catch (error) {
     console.error("❌ OpenAI API Error:", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to generate ALT text.", details: error.message });
+
+    const statusCode = error.status || 500;
+    const message =
+      error?.code === "invalid_image_format"
+        ? "Unsupported image format. Please upload png, jpeg, gif, or webp."
+        : error.message || "Failed to generate ALT text.";
+
+    return res.status(statusCode).json({
+      error: "ALT generation failed.",
+      details: message,
+    });
   }
 }
