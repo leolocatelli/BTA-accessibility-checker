@@ -7,6 +7,8 @@ import AccessibilityChecker from "../components/AccessibilityChecker";
 import ImageAltGenerator from "../components/ImageAltGenerator";
 import ColorContrastChecker from "../components/ColorContrastChecker";
 import CharacterCounter from "../components/CharacterCounter";
+import ResponsivePreviewTool from "../components/ResponsivePreviewTool";
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");
 
@@ -34,6 +36,8 @@ export default function Home() {
         {activeTab === "image-alt" && <ImageAltGenerator />}
         {activeTab === "contrast" && <ColorContrastChecker />}
         {activeTab === "text-tools" && <CharacterCounter />}
+        {/* {activeTab === "responsive-preview" && <ResponsivePreviewTool />} */}
+
       </div>
     </div>
   );

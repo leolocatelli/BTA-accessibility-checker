@@ -190,6 +190,13 @@ function getSuggestedFix(violationId) {
     "https://dequeuniversity.com/rules/axe/4.8/meta-viewport?application=axeAPI",
 },
 
+"landmark-main-is-top-level": {
+  message:
+    "The <main> element must be at the top level of the page's structure. Avoid nesting it inside other elements like <div>.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/landmark-main-is-top-level?application=axeAPI",
+},
+
 
   };
 

@@ -1,4 +1,10 @@
-import { LayoutGrid, Image, Droplet, Type } from "lucide-react";
+import {
+  LayoutGrid,
+  Image,
+  Droplet,
+  Type,
+  MonitorSmartphone,
+} from "lucide-react";
 
 export default function TabsNavigation({ activeTab, setActiveTab }) {
   const baseBtn =
@@ -57,6 +63,18 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Type className="w-5 h-5" />
         Text Tools
       </button>
+
+      {/* <button
+        className={`${baseBtn} ${
+          activeTab === "responsive-preview"
+            ? "border-b-4 border-blue-500 text-blue-600 bg-blue-50"
+            : "text-gray-600 hover:text-blue-500"
+        }`}
+        onClick={() => setActiveTab("responsive-preview")}
+      >
+        <MonitorSmartphone className="w-5 h-5" />
+        Responsive Preview
+      </button> */}
     </div>
   );
 }

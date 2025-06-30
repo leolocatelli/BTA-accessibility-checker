@@ -1,6 +1,6 @@
 async function extractImages(page) {
   try {
-    const ignoredClasses = ["mega-menu__mobile"];
+    const ignoredClasses = [];
 
     return await page.evaluate(async (ignoredClasses) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -12,13 +12,20 @@ async function extractImages(page) {
           let img = el.tagName.toLowerCase() === "picture" ? el.querySelector("img") : el;
           if (!img) return false;
 
-          let parent = img;
+          // 🚫 Verifica se a PRÓPRIA imagem tem classe ignorada
+          if (img.classList && ignoredClasses.some((cls) => img.classList.contains(cls))) {
+            return false;
+          }
+
+          // 🚫 Verifica se algum ancestral da imagem tem classe ignorada
+          let parent = img.parentElement;
           while (parent) {
             if (parent.classList && ignoredClasses.some((cls) => parent.classList.contains(cls))) {
               return false;
             }
             parent = parent.parentElement;
           }
+
           return true;
         })
         .map((el) => {
