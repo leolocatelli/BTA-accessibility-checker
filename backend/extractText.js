@@ -1,7 +1,11 @@
 async function extractText(page, minCharLength = 40) {
   try {
     const ignoredClasses = [
-,
+      "ot-sdk-eight",
+      "ot-sdk-columns",
+      "footer-copyright__container",
+      "prefooter__data",
+      "ot-sdk-row",
     ];
 
     const allowedTdClasses = [
