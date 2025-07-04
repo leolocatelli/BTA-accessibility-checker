@@ -197,7 +197,54 @@ function getSuggestedFix(violationId) {
     "https://dequeuniversity.com/rules/axe/4.8/landmark-main-is-top-level?application=axeAPI",
 },
 
+"aria-roles": {
+  message:
+    "The 'role' attribute must have a valid value that matches the element's purpose. Use only roles defined in the ARIA specification.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-roles?application=axeAPI",
+},
 
+"aria-unsupported-elements": {
+  message:
+    "This element does not support the ARIA attributes being used. Remove or relocate ARIA attributes to appropriate elements.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-unsupported-elements?application=axeAPI",
+},
+
+"aria-required-parent": {
+  message:
+    "Elements with certain ARIA roles must be nested within required parent roles. Ensure proper HTML structure and role hierarchy.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-required-parent?application=axeAPI",
+},
+
+"aria-allowed-role": {
+  message:
+    "The 'role' attribute on this element is not allowed. Only certain elements support specific roles. Remove or use a permitted role for this element type.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-allowed-role?application=axeAPI",
+},
+
+
+"aria-allowed-attr": {
+  message:
+    "This element has ARIA attributes that are not permitted for its role. Review the element’s role and remove unsupported ARIA attributes.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-allowed-attr?application=axeAPI",
+},
+
+"select-name": {
+  message:
+    "The <select> element must have an accessible name. Add a <label> element, aria-label, or aria-labelledby to describe its purpose to screen readers.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/select-name?application=axeAPI",
+},
+"landmark-no-duplicate-main": {
+  message:
+    "The page contains multiple <main> landmarks. Only one <main> element should be present to define the primary content of the page.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/landmark-no-duplicate-main?application=axeAPI",
+},
   };
 
   return (
