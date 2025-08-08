@@ -225,6 +225,12 @@ function getSuggestedFix(violationId) {
     "https://dequeuniversity.com/rules/axe/4.8/aria-allowed-role?application=axeAPI",
 },
 
+"empty-table-header": {
+  message:
+    "Table header cells (<th>) must have discernible and descriptive text to help users understand the table’s content and structure.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/empty-table-header?application=axeAPI",
+},
 
 "aria-allowed-attr": {
   message:
@@ -245,6 +251,42 @@ function getSuggestedFix(violationId) {
   wcagLink:
     "https://dequeuniversity.com/rules/axe/4.8/landmark-no-duplicate-main?application=axeAPI",
 },
+
+"nested-interactive": {
+  message:
+    "Do not nest interactive controls (e.g., a button inside a link). Nesting can break screen reader announcements and keyboard focus.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/nested-interactive?application=axeAPI",
+},
+
+"image-redundant-alt": {
+  message:
+    "Avoid repeating the image’s alt text as adjacent visible text. Either shorten the alt or mark the image as decorative if the text is already present.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/image-redundant-alt?application=axeAPI",
+},
+
+"landmark-contentinfo-is-top-level": {
+  message:
+    "The <footer> / contentinfo landmark must be at the top level of the page structure. Do not nest it inside other landmark regions.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/landmark-contentinfo-is-top-level?application=axeAPI",
+},
+
+"landmark-no-duplicate-contentinfo": {
+  message:
+    "There should be at most one contentinfo (usually the global <footer>) per page. Remove duplicates or scope extras appropriately.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/landmark-no-duplicate-contentinfo?application=axeAPI",
+},
+
+"landmark-unique": {
+  message:
+    "Each landmark region should be unique or have a unique accessible name (e.g., aria-label) so users can distinguish them.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/landmark-unique?application=axeAPI",
+}
+
   };
 
   return (
