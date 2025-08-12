@@ -83,8 +83,8 @@ app.delete("/api/screenshots", (req, res) => {
   res.json({ success: true });
 });
 
-// 🧠 Adiciona rota do ARIA Inspector
-registerInspectRoute(app);  // ✅ <-- Esta linha estava faltando
+
+registerInspectRoute(app);  
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);

@@ -18,7 +18,24 @@ export default function AriaTabInspector() {
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
 
+  // iframe
   const iframeRef = useRef(null);
+  const [iframeLocked, setIframeLocked] = useState(true); // <- iframe não clicável por padrão
+
+  // linha expandida
+  const [expandedId, setExpandedId] = useState(null);
+
+  // ---- helpers para a tabela ----
+  const displayTagOf = (f) =>
+    f?.role === "link" || f?.tag === "a" ? "link" : (f?.role || f?.tag || "");
+
+  const isNoName = (f) => !f?.accessibleName || !String(f.accessibleName).trim();
+  const isSuspicious = (f) => {
+    const n = String(f?.accessibleName || "").trim().toLowerCase();
+    if (!n) return false; // noName já cobre
+    return n === "click here" || n === "learn more" || n.length <= 2;
+  };
+  const severityOf = (f) => (isNoName(f) ? "danger" : (isSuspicious(f) ? "warning" : "normal"));
 
   // ---- API ----
   async function handleAnalyze(e) {
@@ -32,6 +49,7 @@ export default function AriaTabInspector() {
 
     setLoading(true);
     setResult(null);
+    setExpandedId(null);
 
     try {
       const res = await fetch("/api/inspect", {
@@ -52,10 +70,11 @@ export default function AriaTabInspector() {
   function handleClear() {
     setResult(null);
     setError("");
+    setExpandedId(null);
   }
 
-  // ---- Highlight no iframe ao passar o mouse na lista ----
-  function highlightInIframe(a11yId, on = true) {
+  // ---- Highlight no iframe ao passar o mouse / clicar na lista ----
+  function highlightInIframe(a11yId, on = true, doScroll = false) {
     const iframe = iframeRef.current;
     if (!iframe || !iframe.contentDocument) return;
     const doc = iframe.contentDocument;
@@ -63,16 +82,18 @@ export default function AriaTabInspector() {
     // remove highlights antigos
     doc.querySelectorAll(".a11y-hover").forEach((el) => el.classList.remove("a11y-hover"));
 
-    if (on) {
-      const el = doc.querySelector(`[data-a11y-id="${a11yId}"]`);
-      if (el) {
-        el.classList.add("a11y-hover");
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
+    const el = doc.querySelector(`[data-a11y-id="${a11yId}"]`);
+    if (!el) return;
+
+    if (on) el.classList.add("a11y-hover");
+    if (doScroll) {
+      try { el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" }); } catch {}
     }
+
+    // IMPORTANTE: não disparar 'click' dentro do iframe (evita navegar/quebrar)
   }
 
-  // ---- Ajuste automático da altura do iframe (altura total do documento) ----
+  // ---- Ajuste automático da altura do iframe ----
   useEffect(() => {
     if (!result) return;
     const iframe = iframeRef.current;
@@ -106,7 +127,6 @@ export default function AriaTabInspector() {
     const docBody = (d) => d.body;
 
     iframe.addEventListener("load", onLoad);
-    // mede também se o srcDoc já veio carregado
     setTimeout(measure, 200);
 
     return () => {
@@ -180,7 +200,7 @@ export default function AriaTabInspector() {
           )}
         </form>
 
-        {/* Scope + Zoom */}
+        {/* Scope + Zoom + Clicks */}
         <div className="mb-3 flex flex-wrap items-center gap-4 text-sm text-gray-700">
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2">
@@ -230,6 +250,16 @@ export default function AriaTabInspector() {
               <option value={0.9}>90%</option>
               <option value={1}>100%</option>
             </select>
+
+            {/* Toggle opcional: permitir clicks no iframe */}
+            <label className="ml-3 flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={!iframeLocked}
+                onChange={(e) => setIframeLocked(!e.target.checked)}
+              />
+              Enable clicks
+            </label>
           </div>
         </div>
 
@@ -259,11 +289,14 @@ export default function AriaTabInspector() {
                 <iframe
                   ref={iframeRef}
                   title="ARIA & Tab Inspector Preview"
-                  // sem scripts do site (já removidos); same-origin p/ medir altura
                   sandbox="allow-same-origin"
                   srcDoc={result.html}
                   className="w-full bg-white"
-                  style={{ border: 0, height: `${frameHeight}px` }}
+                  style={{
+                    border: 0,
+                    height: `${frameHeight}px`,
+                    pointerEvents: iframeLocked ? "none" : "auto", // <- bloqueia clicks no iframe
+                  }}
                 />
               </div>
 
@@ -280,7 +313,7 @@ export default function AriaTabInspector() {
       {/* Focusable elements panel (floating) */}
       <div
         ref={dragRef}
-        className={`${undocked ? "fixed" : "absolute right-0 top-0"} z-50 w-[340px] max-h-[85vh] overflow-hidden rounded-xl border bg-white shadow-lg`}
+        className={`${undocked ? "fixed" : "absolute right-0 top-0"} z-50 w-[360px] max-h-[85vh] overflow-hidden rounded-xl border bg-white shadow-lg`}
         style={undocked ? { left: pos.x, top: pos.y } : {}}
       >
         <div
@@ -289,50 +322,123 @@ export default function AriaTabInspector() {
           title={undocked ? "Drag to move" : ""}
         >
           Focusable elements
-          <button
-            className="text-xs rounded-md border px-2 py-1 hover:bg-gray-100"
-            onClick={() => setUndocked((v) => !v)}
-          >
-            {undocked ? "Dock" : "Undock"}
-          </button>
+          <div className="flex items-center gap-2">
+  {/* legenda rápida */}
+  <span className="inline-flex items-center gap-1 text-[11px] text-gray-600 pr-2">
+    <i className="inline-block h-2 w-2 rounded-full bg-red-600" /> no name
+  </span>
+
+  {/* 
+  <span className="inline-flex items-center gap-1 text-[11px] text-gray-600">
+    <i className="inline-block h-2 w-2 rounded-full bg-amber-500" /> suspicious
+  </span>
+  */}
+
+  <button
+    className="ml-auto text-xs rounded-md border px-2 py-1 hover:bg-gray-100"
+    onClick={() => setUndocked((v) => !v)}
+  >
+    {undocked ? "Dock" : "Undock"}
+  </button>
+</div>
+
         </div>
 
         <div className="px-3 py-2 text-xs text-gray-600 border-b">
           {result?.summary ? (
             <div className="flex flex-wrap gap-3">
               <span>Total: <b>{result.summary.total}</b></span>
-              <span>No name: <b>{result.summary.noName}</b></span>
-              <span>Suspicious: <b>{result.summary.suspicious}</b></span>
+              <span>No name: <b className="text-red-600">{result.summary.noName}</b></span>
+              {/* <span>Suspicious: <b className="text-amber-600">{result.summary.suspicious}</b></span> */}
             </div>
           ) : (
             <span>No data yet.</span>
           )}
         </div>
 
-        <div className="max-h-[70vh] overflow-auto divide-y">
-          {result?.focusables?.map((f) => (
-            <div
-              key={f.id}
-              className="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer"
-              onMouseEnter={() => highlightInIframe(f.id, true)}
-              onMouseLeave={() => highlightInIframe(f.id, false)}
-              title={`Order ${f.order}`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">
-                  {f.order}. {f.role || f.tag}
-                </span>
-                <span className="text-xs text-gray-500">tabIndex: {f.tabIndex}</span>
-              </div>
-              <div
-                className="text-gray-700 truncate"
-                title={f.accessibleName || "⚠ No accessible name"}
-              >
-                {f.accessibleName || "⚠ No accessible name"}
-              </div>
-            </div>
-          ))}
+       <div className="max-h-[70vh] overflow-auto divide-y">
+  {result?.focusables?.map((f, idx) => {
+    const sev = severityOf(f);                 // danger | warning | normal
+    const isExpanded = expandedId === f.id;
+
+    // zebra base (par = branco, ímpar = cinza-claro)
+    const zebra = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
+
+    // cor final da linha (severidade > zebra)
+    const rowBg =
+      sev === "danger"  ? "bg-red-50/70" :
+      sev === "warning" ? "bg-amber-50/70" :
+      zebra;
+
+    const rowBorder =
+      sev === "danger"  ? "border-l-4 border-red-600" :
+      sev === "warning" ? "border-l-4 border-amber-500" :
+      "border-l-4 border-transparent";
+
+    return (
+      <div
+        key={f.id}
+        className={[
+          "px-3 py-2 cursor-pointer transition-colors",
+          "hover:bg-gray-100",
+          rowBg,
+          rowBorder,
+          "text-base" // <- fonte maior no painel
+        ].join(" ")}
+        onMouseEnter={() => highlightInIframe(f.id, true)}
+        onMouseLeave={() => highlightInIframe(f.id, false)}
+        onClick={() => {
+          setExpandedId((prev) => (prev === f.id ? null : f.id));
+          // só destaca + scroll (NÃO clica dentro do iframe)
+          highlightInIframe(f.id, true, true);
+        }}
+        title={`Order ${f.order}`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-semibold">
+            {f.order}. {displayTagOf(f)} {/* <- sem # e 'a' vira 'link' */}
+          </span>
+
+          <div className="flex items-center gap-2">
+            {/* chips de severidade – garantem visibilidade */}
+            {sev === "danger" && (
+              <span className="rounded px-1.5 py-0.5 text-[11px] font-semibold bg-red-100 text-red-700">
+                no name
+              </span>
+            )}
+            {sev === "warning" && (
+              <span className="rounded px-1.5 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-700">
+                suspicious
+              </span>
+            )}
+            <span className="text-[12px] text-gray-600">tabIndex: {f.tabIndex}</span>
+          </div>
         </div>
+
+        {/* Nome acessível: compacto vs expandido */}
+        {!isExpanded ? (
+          <div className="text-gray-900 truncate">
+            {f.accessibleName || "⚠ No accessible name"}
+          </div>
+        ) : (
+          <div className="mt-1 whitespace-pre-wrap break-words text-gray-900">
+            {f.accessibleName || "⚠ No accessible name"}
+          </div>
+        )}
+
+        {/* meta extra quando expandido */}
+        {isExpanded && (
+          <div className="mt-2 text-[12px] text-gray-600">
+            {/* id: <code className="text-gray-800">{f.id}</code> */}
+            {f.role ? <>  role: <code className="text-gray-800">{f.role}</code></> : null}
+            {f.tag ? <> • tag: <code className="text-gray-800">{f.tag}</code></> : null}
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
+
       </div>
     </div>
   );
