@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -13,6 +12,8 @@ const { extractVideos } = require("./extractVideos");
 const { extractText } = require("./extractText");
 const { handleViolations } = require("./handleViolations.cjs");
 const { measureLoadTime } = require("./measureLoadTime");
+const { registerInspectRoute } = require("./inspectRoute");
+
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -81,6 +82,9 @@ app.delete("/api/screenshots", (req, res) => {
   }
   res.json({ success: true });
 });
+
+// 🧠 Adiciona rota do ARIA Inspector
+registerInspectRoute(app);  // ✅ <-- Esta linha estava faltando
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
