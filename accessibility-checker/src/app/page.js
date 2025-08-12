@@ -8,6 +8,7 @@ import ImageAltGenerator from "../components/ImageAltGenerator";
 import ColorContrastChecker from "../components/ColorContrastChecker";
 import CharacterCounter from "../components/CharacterCounter";
 import ResponsivePreviewTool from "../components/ResponsivePreviewTool";
+import AriaTabInspector from "@/components/AriaTabInspector";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");
@@ -36,6 +37,7 @@ export default function Home() {
         {activeTab === "image-alt" && <ImageAltGenerator />}
         {activeTab === "contrast" && <ColorContrastChecker />}
         {activeTab === "text-tools" && <CharacterCounter />}
+        {activeTab === "inspector" && <AriaTabInspector />}
         {/* {activeTab === "responsive-preview" && <ResponsivePreviewTool />} */}
 
       </div>

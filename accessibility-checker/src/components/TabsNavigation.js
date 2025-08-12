@@ -4,6 +4,7 @@ import {
   Droplet,
   Type,
   MonitorSmartphone,
+  Eye,
 } from "lucide-react";
 
 export default function TabsNavigation({ activeTab, setActiveTab }) {
@@ -75,6 +76,19 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <MonitorSmartphone className="w-5 h-5" />
         Responsive Preview
       </button> */}
+
+      {/* ARIA & Tab Inspector Tab */}
+      <button
+        className={`${baseBtn} ${
+          activeTab === "inspector"
+            ? "border-b-4 border-blue-500 text-blue-600 bg-blue-50"
+            : "text-gray-600 hover:text-blue-500"
+        }`}
+        onClick={() => setActiveTab("inspector")}
+      >
+        <Eye className="w-5 h-5" />
+        ARIA & Tab Inspector
+      </button>
     </div>
   );
 }
