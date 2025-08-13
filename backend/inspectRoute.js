@@ -3,12 +3,17 @@ const puppeteer = require("puppeteer");
 const sanitizeHtml = require("sanitize-html");
 
 // -----------------------------
-// Helpers enxutos (fora do browser)
+// Helpers (fora do browser)
 // -----------------------------
 async function launchBrowser() {
   return puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+    ],
     executablePath:
       process.env.CHROME_PATH ||
       (puppeteer.executablePath ? puppeteer.executablePath() : undefined),
@@ -17,12 +22,24 @@ async function launchBrowser() {
   });
 }
 
+// “race” de timeout para evitar 504 no proxy
+function withTimeout(promise, ms, label = "task") {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) =>
+      setTimeout(() => rej(new Error(`TIMEOUT:${label}`)), ms)
+    ),
+  ]);
+}
+
 function injectBaseHref(html, pageUrl) {
   try {
     return /<base\s+href=/i.test(html)
       ? html
       : html.replace(/<head([^>]*)>/i, (m, a) => `<head${a}><base href="${pageUrl}">`);
-  } catch { return html; }
+  } catch {
+    return html;
+  }
 }
 
 function sanitize(html) {
@@ -48,7 +65,7 @@ function sanitize(html) {
   });
 }
 
-// Constantes que passamos para o page.evaluate (simples e serializáveis)
+// Constantes simples para page.evaluate
 const FOCUSABLE = [
   "a[href]","button","input:not([type='hidden'])","textarea","select",
   "[contenteditable='true']","[tabindex]:not([tabindex='-1'])","[role='button']","[role='link']",
@@ -59,24 +76,19 @@ const OVERLAY_CSS = `
 .a11y-mark.a11y-hover{outline-width:3px!important}
 .a11y-badge{
   position:absolute; top:-10px; left:-10px; z-index:2147483647;
-  font:700 14px/1 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; /* antes 12px -> 14px */
-  background:#2563eb; color:#fff; border-radius:9999px; padding:3px 8px; /* badge maior */
+  font:700 14px/1 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+  background:#2563eb; color:#fff; border-radius:9999px; padding:3px 8px;
   box-shadow:0 1px 2px rgba(0,0,0,.25);
 }
-/* ALERTAS */
 .a11y-mark.a11y-danger{ outline-color:#dc2626!important }
 .a11y-mark.a11y-danger .a11y-badge{ background:#dc2626!important }
 .a11y-mark.a11y-warning{ outline-color:#f59e0b!important }
 .a11y-mark.a11y-warning .a11y-badge{ background:#f59e0b!important }
-
-/* Tooltip antigo (hover) — desativado; usaremos popover de clique */
 .a11y-mark:hover::after{ content:none }
-
-/* Popover fixo ao clicar (um pouco maior) */
 .a11y-pop{
   position:fixed; left:16px; right:16px; bottom:16px; z-index:2147483647;
   background:#111; color:#fff; padding:14px 16px; border-radius:10px;
-  font:500 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; /* antes 13px -> 14px */
+  font:500 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
   box-shadow:0 10px 30px rgba(0,0,0,.35);
   max-height:42vh; overflow:auto;
 }
@@ -90,11 +102,9 @@ html.js .no-js-only,.js .no-js-only{display:none!important}
 html.no-js .js-only,.no-js .js-only{display:none!important}
 `;
 
-
-
 async function processPage(page, { scope = "main", includeDialogs = false }) {
-  // espera redes ficarem ociosas, sem travar se a página for ruidosa
-  await page.waitForNetworkIdle({ idleTime: 500, timeout: 10000 }).catch(() => {});
+  // espera redes ficarem ociosas, mas com cap mais curto
+  await page.waitForNetworkIdle({ idleTime: 500, timeout: 5000 }).catch(() => {});
   return page.evaluate(
     ({ scope, includeDialogs, FOCUSABLE, OVERLAY_CSS }) => {
       // ---------- Helpers dentro do browser ----------
@@ -216,15 +226,41 @@ async function inspect(url, opts) {
   const browser = await launchBrowser();
   try {
     const page = await browser.newPage();
+
+    // timeouts padrão mais curtos
+    page.setDefaultNavigationTimeout(12000);
+    page.setDefaultTimeout(7000);
+
+    // Intercepta requests para acelerar e evitar travas
+    await page.setRequestInterception(true);
+    const BLOCK_TYPES = new Set(["image", "media", "font", "stylesheet"]);
+    const BLOCK_HOSTS = [
+      "googletagmanager.com",
+      "google-analytics.com",
+      "doubleclick.net",
+      "facebook.net",
+      "hotjar.com",
+      "segment.com",
+      "optimizely.com",
+      "newrelic.com",
+    ];
+    page.on("request", (req) => {
+      const url = req.url().toLowerCase();
+      if (BLOCK_TYPES.has(req.resourceType())) return req.abort();
+      if (BLOCK_HOSTS.some(h => url.includes(h))) return req.abort();
+      return req.continue();
+    });
+
     await page.setBypassCSP(true);
 
-    // tenta aceitar/fechar consentimentos comuns + simular JS
+    // Navegação mais permissiva (evita networkidle0)
     try {
-      await page.goto(url, { waitUntil: ["domcontentloaded", "networkidle0"], timeout: 15000 });
+      await page.goto(url, { waitUntil: ["load", "domcontentloaded"], timeout: 12000 });
     } catch (e) {
       console.warn("Navigation warning:", e.message);
     }
 
+    // Tenta “aceitar cookies” e simular JS
     try {
       await page.evaluate(() => {
         const clickFirst = (sels) => { for (const s of sels) { const n = document.querySelector(s); if (n) { n.click(); return true; } } return false; };
@@ -238,7 +274,7 @@ async function inspect(url, opts) {
         document.documentElement.classList.remove('no-js');
         document.documentElement.classList.add('js','has-js');
       });
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(400);
     } catch {}
 
     const data = await processPage(page, opts);
@@ -254,14 +290,25 @@ async function inspect(url, opts) {
 // -----------------------------
 function registerInspectRoute(app) {
   app.post("/api/inspect", async (req, res) => {
+    const T_MAX = 25000; // 25s: abaixo do corte do proxy + bom UX
     try {
       const { url, scope = "main", includeDialogs = false } = req.body || {};
       if (!url) return res.status(400).json({ error: "Missing url" });
-      const data = await inspect(url, { scope, includeDialogs });
-      res.json(data);
+
+      const data = await withTimeout(
+        inspect(url, { scope, includeDialogs }),
+        T_MAX,
+        "inspect"
+      );
+
+      return res.json(data);
     } catch (err) {
-      console.error("inspect error:", err.stack || err);
-      res.status(500).send(err.message || "Inspect failure");
+      const msg = String(err && err.message || err || "");
+      const isTimeout = msg.startsWith("TIMEOUT:");
+      console.error("inspect error:", msg);
+      return res
+        .status(isTimeout ? 504 : 500)
+        .json({ ok: false, error: isTimeout ? "Request timed out while inspecting the page." : msg });
     }
   });
 }
