@@ -1,3 +1,5 @@
+// backend/server.js
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -14,15 +16,27 @@ const { handleViolations } = require("./handleViolations.cjs");
 const { measureLoadTime } = require("./measureLoadTime");
 const { registerInspectRoute } = require("./inspectRoute");
 
+// ✅ importa a nova rota de upload local
+const altUploadRoute = require("./altUploadRoute");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// 🌍 CORS — libere somente seu frontend do Heroku (ou * durante testes)
+const ALLOWED_ORIGIN = process.env.FRONTEND_ORIGIN || "*";
+app.use(cors({
+  origin: ALLOWED_ORIGIN,
+  methods: ["GET", "POST", "DELETE", "OPTIONS"],
+}));
+
 // 📁 Torna os screenshots acessíveis publicamente
 app.use("/screenshots", express.static(path.join(__dirname, "public/screenshots")));
 
-app.use(cors());
-app.use(bodyParser.json());
+// 📦 JSON do corpo (para rotas JSON como /api/check)
+app.use(bodyParser.json({ limit: "1mb" }));
+
+// 🆕 Rota para upload local de imagens → gerar ALT (multipart em memória)
+app.use(altUploadRoute);
 
 // 🚀 Rota principal da análise
 app.post("/api/check", async (req, res) => {
@@ -83,9 +97,10 @@ app.delete("/api/screenshots", (req, res) => {
   res.json({ success: true });
 });
 
-
-registerInspectRoute(app);  
+// 🔍 Rota do Aria Inspector (já existente)
+registerInspectRoute(app);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
+  console.log(`CORS allowed origin: ${ALLOWED_ORIGIN}`);
 });

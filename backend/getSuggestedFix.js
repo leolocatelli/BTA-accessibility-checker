@@ -280,6 +280,13 @@ function getSuggestedFix(violationId) {
     "https://dequeuniversity.com/rules/axe/4.8/landmark-no-duplicate-contentinfo?application=axeAPI",
 },
 
+"aria-valid-attr": {
+  message:
+    "Ensure attributes that begin with aria- are valid ARIA attributes.",
+  wcagLink:
+    "https://dequeuniversity.com/rules/axe/4.8/aria-valid-attr?application=axeAPI",
+},
+
 "landmark-unique": {
   message:
     "Each landmark region should be unique or have a unique accessible name (e.g., aria-label) so users can distinguish them.",
