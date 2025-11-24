@@ -10,12 +10,30 @@ import {
 } from "lucide-react";
 
 const altCache = {};
-const BASE_URL = "https://bta.scene7.com/is/image/brownthomas/";
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
 
 function convertGoogleDriveLink(url) {
   const match = url.match(/\/d\/([^/]+)\//);
   return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : url;
+}
+
+// 🔹 Novo helper para montar a URL dos assets BT
+function generateBTAssetURL(value) {
+  if (!value || typeof value !== "string") return "";
+
+  const trimmed = value.trim();
+
+  // Se já for URL completa (http/https), mantém como está
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  // Se o usuário já colocou extensão, não adicionamos outra
+  const hasExtension = /\.[a-zA-Z0-9]+$/.test(trimmed);
+  const assetName = hasExtension ? trimmed : `${trimmed}.jpg`;
+
+  // Monta a URL no novo padrão
+  return `https://images.brownthomas.com/bta/${assetName}`;
 }
 
 const uid = () => Math.random().toString(36).slice(2);
@@ -36,17 +54,19 @@ export default function ImageAltGenerator() {
   const handleUrlInput = (e) => {
     const rawInputs = e.target.value
       .split("\n")
-      .map((url) => convertGoogleDriveLink(url.trim()))
-      .filter((url) => url);
+      .map((url) => url.trim())
+      .filter((url) => url)
+      .map((url) => convertGoogleDriveLink(url));
 
-    const processedUrls = rawInputs.map((url) =>
-      url.startsWith("http://") || url.startsWith("https://")
-        ? url
-        : `${BASE_URL}${url}`
-    );
+    const processedUrls = rawInputs.map((value) => generateBTAssetURL(value));
 
     const newInputs = processedUrls
-      .filter((url) => !imageInputs.some((input) => input.type === "url" && input.url === url))
+      .filter(
+        (url) =>
+          !imageInputs.some(
+            (input) => input.type === "url" && input.url === url
+          )
+      )
       .map((url) => ({ id: uid(), type: "url", url, keyword: "" }));
 
     setWarning(
@@ -63,7 +83,11 @@ export default function ImageAltGenerator() {
 
     const tooBig = files.filter((f) => f.size > MAX_FILE_BYTES);
     if (tooBig.length) {
-      setWarning(`Some files exceeded ${Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB and were skipped.`);
+      setWarning(
+        `Some files exceeded ${Math.round(
+          MAX_FILE_BYTES / 1024 / 1024
+        )}MB and were skipped.`
+      );
     }
 
     const accepted = files.filter((f) => f.size <= MAX_FILE_BYTES);
@@ -72,7 +96,10 @@ export default function ImageAltGenerator() {
       .filter(
         (f) =>
           !imageInputs.some(
-            (inp) => inp.type === "file" && inp.file?.name === f.name && inp.file?.size === f.size
+            (inp) =>
+              inp.type === "file" &&
+              inp.file?.name === f.name &&
+              inp.file?.size === f.size
           )
       )
       .map((file) => ({
@@ -133,7 +160,9 @@ export default function ImageAltGenerator() {
             });
 
             if (!response.ok)
-              throw new Error(`Server error: ${response.status} ${response.statusText}`);
+              throw new Error(
+                `Server error: ${response.status} ${response.statusText}`
+              );
 
             const data = await response.json();
             altText = data.altText || "";
@@ -142,10 +171,9 @@ export default function ImageAltGenerator() {
 
           newResults.push({
             id: item.id,
-            preview:
-              item.url.includes("drive.google.com")
-                ? "https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png"
-                : item.url,
+            preview: item.url.includes("drive.google.com")
+              ? "https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png"
+              : item.url,
             altText,
           });
         } else if (item.type === "file") {
@@ -160,7 +188,9 @@ export default function ImageAltGenerator() {
           );
 
           if (!response.ok)
-            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            throw new Error(
+              `Server error: ${response.status} ${response.statusText}`
+            );
 
           const data = await response.json();
           altText = data.altText || data.alt || "";
@@ -193,9 +223,11 @@ export default function ImageAltGenerator() {
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg">
       {/* Header */}
 
-
       {/* URLs */}
-      <label htmlFor="alt-urls" className="block text-sm font-medium text-gray-700 mb-1">
+      <label
+        htmlFor="alt-urls"
+        className="block text-sm font-medium text-gray-700 mb-1"
+      >
         Image URLs (one per line)
       </label>
       <textarea
@@ -209,7 +241,8 @@ export default function ImageAltGenerator() {
       {/* Upload button (tema) */}
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="text-xs text-gray-500">
-          Accepted: JPG, PNG, WEBP, GIF • Max {Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB per file
+          Accepted: JPG, PNG, WEBP, GIF • Max{" "}
+          {Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB per file
         </div>
         <div>
           <input
@@ -239,7 +272,10 @@ export default function ImageAltGenerator() {
         </div>
       )}
       {error && (
-        <p className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-2" aria-live="polite">
+        <p
+          className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-2"
+          aria-live="polite"
+        >
           {error}
         </p>
       )}
@@ -248,7 +284,9 @@ export default function ImageAltGenerator() {
       {imageInputs.length > 0 && (
         <div className="mt-5 bg-gray-50 p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-base font-semibold">Selected Images ({imageInputs.length})</h3>
+            <h3 className="text-base font-semibold">
+              Selected Images ({imageInputs.length})
+            </h3>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -272,17 +310,12 @@ export default function ImageAltGenerator() {
                       className="w-auto max-h-full object-contain"
                       onError={(e) => {
                         if (input.type === "file") return;
-                        const fallback = e.currentTarget.parentNode;
-                        fallback.innerHTML = `
-                          <div class="flex flex-col items-center justify-center text-gray-500 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856C18.07 20 20 18.07 20 15.938V8.063C20 5.93 18.07 4 15.938 4H8.063C5.93 4 4 5.93 4 8.063v7.875C4 18.07 5.93 20 8.063 20z" />
-                            </svg>
-                            <p>Image not available</p>
-                          </div>`;
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src =
+                          "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
                       }}
                     />
+
                     <button
                       onClick={() => removeImage(index)}
                       className="absolute top-2 right-2 bg-gray-800/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
@@ -293,7 +326,9 @@ export default function ImageAltGenerator() {
                   </div>
 
                   <div className="p-3">
-                    <label className="sr-only" htmlFor={`kw-${input.id}`}>Optional keyword</label>
+                    <label className="sr-only" htmlFor={`kw-${input.id}`}>
+                      Optional keyword
+                    </label>
                     <input
                       id={`kw-${input.id}`}
                       type="text"
@@ -353,7 +388,9 @@ export default function ImageAltGenerator() {
                 </div>
 
                 <div className="flex-1 flex flex-col">
-                  <p className="text-gray-800 text-sm leading-6">{result.altText}</p>
+                  <p className="text-gray-800 text-sm leading-6">
+                    {result.altText}
+                  </p>
 
                   <div className="mt-3">
                     <button
@@ -363,7 +400,8 @@ export default function ImageAltGenerator() {
                     >
                       {copiedIndex === index ? (
                         <>
-                          <CheckCircle className="w-4 h-4 text-green-600" /> Copied!
+                          <CheckCircle className="w-4 h-4 text-green-600" />{" "}
+                          Copied!
                         </>
                       ) : (
                         <>

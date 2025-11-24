@@ -29,6 +29,9 @@ export default function ColorContrastChecker() {
   const [isPicking, setIsPicking] = useState(false);
   const [pickFeedback, setPickFeedback] = useState("");
 
+  // 🔗 URL input
+  const [imageUrlInput, setImageUrlInput] = useState("");
+
   // 🔍 Lens state
   const [lensVisible, setLensVisible] = useState(false);
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
@@ -76,7 +79,7 @@ export default function ColorContrastChecker() {
     navigator.clipboard.writeText(cssText);
   };
 
-  // 🖼️ Handle image upload
+  // 🖼️ Handle image upload (file)
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -88,8 +91,21 @@ export default function ColorContrastChecker() {
       setPickedColor("");
       setPickFeedback("");
       setLensVisible(false);
+      setImageUrlInput("");
     };
     reader.readAsDataURL(file);
+  };
+
+  // 🔗 Handle image load from URL
+  const handleLoadImageFromUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+
+    setImageSrc(url);
+    setFilter("normal");
+    setPickedColor("");
+    setPickFeedback("");
+    setLensVisible(false);
   };
 
   // 🧮 Draw image in hidden canvas
@@ -178,31 +194,49 @@ export default function ColorContrastChecker() {
     <div className="p-8 max-w-4xl mx-auto bg-white rounded-lg shadow-lg space-y-8">
       {/* 🖼️ IMAGE + FILTERS + EYEDROPPER */}
       <section>
-        {/* <div className="flex items-center gap-2 mb-4">
-          <IoColorPaletteOutline className="w-6 h-6 text-blue-600" />
-          <h2 className="text-lg font-semibold">
-            Image preview & color picker
-          </h2>
-        </div> */}
+        {/* Upload button + URL input */}
+        <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+          
 
-        {/* Upload button */}
-        <div className="flex items-center gap-4 mb-4">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
+          {/* Load from URL */}
+          <div className="w-full sm:max-w-md">
+            <div className="flex">
+              <input
+                type="text"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="https://www.example.com/image.jpg"
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <button
+                type="button"
+                onClick={handleLoadImageFromUrl}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-r-full shadow hover:bg-blue-700"
+              >
+                Load
+              </button>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow hover:bg-blue-700"
-          >
-            <MdOutlineImage className="w-4 h-4" />
-            Upload images
-          </button>
+          {/* Upload from file */}
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow hover:bg-blue-700"
+            >
+              <MdOutlineImage className="w-4 h-4" />
+              Upload images
+            </button>
+          </div>
         </div>
 
         {imageSrc && (
