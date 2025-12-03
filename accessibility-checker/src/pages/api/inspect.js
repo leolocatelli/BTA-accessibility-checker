@@ -2,7 +2,8 @@
 
 export const config = {
   api: {
-    bodyParser: { sizeLimit: "1mb" },
+    // pode aumentar se o HTML for grande (ex: "2mb" ou "4mb")
+    bodyParser: { sizeLimit: "2mb" },
     responseLimit: false,
   },
 };
@@ -16,26 +17,59 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { url, scope = "main", includeDialogs = false } = req.body || {};
+    let {
+      mode,
+      url,
+      html,
+      scope = "main",
+      includeDialogs = false,
+    } = req.body || {};
 
-    // validação básica
-    if (!url || typeof url !== "string") {
-      return res.status(400).json({ error: "Missing url" });
-    }
-    if (!/^https?:\/\//i.test(url)) {
-      return res.status(400).json({ error: "URL must start with http or https" });
+    // 🔹 fallback inteligente para mode
+    if (!mode) {
+      if (html && typeof html === "string") {
+        mode = "html";
+      } else {
+        mode = "url";
+      }
     }
 
-    // normaliza params
+    // 🔹 validação leve por modo (deixa o backend fazer resto)
+    if (mode === "url") {
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ error: "Missing url for mode 'url'" });
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        return res
+          .status(400)
+          .json({ error: "URL must start with http or https" });
+      }
+    } else if (mode === "html") {
+      if (!html || typeof html !== "string") {
+        return res
+          .status(400)
+          .json({ error: "Missing HTML snapshot for mode 'html'" });
+      }
+    } else {
+      // se vier um mode estranho, tenta cair em URL
+      mode = "url";
+      if (!url || typeof url !== "string") {
+        return res
+          .status(400)
+          .json({ error: "Invalid mode and missing url/html" });
+      }
+    }
+
+    // 🔹 normaliza params
     const allowedScopes = new Set(["main", "full"]);
     const normalizedScope = allowedScopes.has(scope) ? scope : "main";
     const normalizedIncludeDialogs = Boolean(includeDialogs);
 
-    // base do backend (sem barra final)
+    // 🔹 base do backend (sem barra final)
     const baseEnv = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const base = baseEnv.replace(/\/+$/, "");
 
-    // timeout configurável
+    // 🔹 timeout configurável
     const controller = new AbortController();
     const timeoutMs = Number(process.env.INSPECT_TIMEOUT_MS || 25000);
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -48,7 +82,9 @@ export default async function handler(req, res) {
         "X-Inspect-Scope": normalizedScope,
       },
       body: JSON.stringify({
+        mode,
         url,
+        html,
         scope: normalizedScope,
         includeDialogs: normalizedIncludeDialogs,
       }),
@@ -61,11 +97,11 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(text);
     } catch {
-      /* mantém null */
+      /* mantém null se não for JSON */
     }
 
     if (!upstream.ok) {
-      const msg = data?.error || text || "Upstream error";
+      const msg = (data && data.error) || text || "Upstream error";
       return res.status(upstream.status).json({ error: msg });
     }
 
