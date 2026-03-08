@@ -35,13 +35,19 @@ async function analyzePageAccessibility(url) {
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
     console.log("✅ Page loaded successfully");
 
+    // -------------------------------------------------
+    // STEP 1: Scroll the entire page to trigger lazy loaders
+    // -------------------------------------------------
+
     await page.evaluate(async () => {
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 300;
+
         const timer = setInterval(() => {
           window.scrollBy(0, distance);
           totalHeight += distance;
+
           if (totalHeight >= document.body.scrollHeight) {
             clearInterval(timer);
             resolve();
@@ -50,16 +56,55 @@ async function analyzePageAccessibility(url) {
       });
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    console.log("🧭 Page scrolled to trigger lazy loading");
+
+    // -------------------------------------------------
+    // STEP 2: Force lazy images to load (data-src → src)
+    // -------------------------------------------------
+
+    await page.evaluate(() => {
+      const images = document.querySelectorAll("img");
+
+      images.forEach((img) => {
+        if (img.dataset.src && !img.src) {
+          img.src = img.dataset.src;
+        }
+
+        if (img.dataset.srcset) {
+          img.srcset = img.dataset.srcset;
+        }
+
+        if (img.dataset.lazy) {
+          img.src = img.dataset.lazy;
+        }
+
+        if (img.dataset.original) {
+          img.src = img.dataset.original;
+        }
+      });
+    });
+
+    console.log("🖼 Lazy images forced to load");
+
+    // -------------------------------------------------
+    // STEP 3: Wait for images to actually load
+    // -------------------------------------------------
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     console.log("🔍 Running Axe Accessibility Analysis...");
 
     const results = await new AxePuppeteer(page).analyze();
+
     console.log("✅ Accessibility Analysis Completed");
 
     return { browser, page, results };
+
   } catch (error) {
     console.error("❌ Puppeteer error:", error);
+
     if (browser) await browser.close();
+
     throw error;
   }
 }

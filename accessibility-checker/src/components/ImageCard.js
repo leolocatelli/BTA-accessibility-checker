@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getColor } from "../utils/getColor";
 import { copyToClipboard } from "../utils/copyToClipboard";
 import { Copy, CheckCircle, Check } from "lucide-react";
@@ -11,6 +11,36 @@ export default function ImageCard({
   setSelectedImage,
 }) {
   const [copied, setCopied] = useState(false);
+  const [imageAttempt, setImageAttempt] = useState(0);
+
+  const rawSrc =
+    img.src && img.src !== "(No image source)" ? img.src : img.dataSrc || "";
+
+  const isBrownThomasImage =
+    typeof rawSrc === "string" && rawSrc.includes("images.brownthomas.com");
+
+  const proxySrc = rawSrc
+    ? `/api/image-proxy?url=${encodeURIComponent(rawSrc)}`
+    : "";
+
+  const previewSrc = useMemo(() => {
+    if (!rawSrc) return "";
+
+    // Attempt 0: normal image loading
+    if (imageAttempt === 0) return rawSrc;
+
+    // Attempt 1: fallback to dataSrc when available and different
+    if (imageAttempt === 1 && img.dataSrc && img.dataSrc !== rawSrc) {
+      return img.dataSrc;
+    }
+
+    // Attempt 2: use proxy only for Brown Thomas CDN images
+    if (imageAttempt >= 2 && isBrownThomasImage) {
+      return proxySrc;
+    }
+
+    return rawSrc;
+  }, [rawSrc, img.dataSrc, imageAttempt, isBrownThomasImage, proxySrc]);
 
   // Copy image URL to clipboard
   const handleCopy = (e) => {
@@ -67,15 +97,27 @@ export default function ImageCard({
       {/* Image Preview */}
       <div className="rounded-md overflow-hidden bg-gray-100 flex items-center justify-center h-32">
         <img
-          src={img.src}
+          src={previewSrc}
           alt={img.alt || ""}
           className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            e.stopPropagation();
+
+            // Try normal fallback flow before giving up
+            if (imageAttempt < 2) {
+              setImageAttempt((prev) => prev + 1);
+              return;
+            }
+
+            // Hide broken image after all attempts fail
+            e.currentTarget.style.display = "none";
+          }}
         />
       </div>
 
       {/* Image Information */}
       <div className="mt-3 text-gray-700 flex-grow">
-
         {/* ALT text */}
         <p className="text-sm font-medium whitespace-normal break-words">
           <strong>ALT:</strong> {img.alt || "(No ALT text)"}
@@ -108,7 +150,8 @@ export default function ImageCard({
         {/* Displayed vs Natural dimensions */}
         {(img.displayedWidth || img.naturalWidth) && (
           <p className="text-xs text-gray-600 mt-1">
-            <strong>Displayed:</strong> {img.displayedWidth}x{img.displayedHeight}
+            <strong>Displayed:</strong> {img.displayedWidth}x
+            {img.displayedHeight}
             {/* {" | "}
             <strong>Natural:</strong> {img.naturalWidth}x{img.naturalHeight} */}
           </p>
@@ -135,7 +178,7 @@ export default function ImageCard({
           )}
           {copied ? "Copied!" : "Copy URL"}
         </button>
-{/* 
+        {/* 
         {!checkedImages[img.src] && img.alt?.trim() !== "(No ALT text)" && (
           <button
             className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
