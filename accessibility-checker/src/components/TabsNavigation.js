@@ -5,6 +5,7 @@ import {
   Type,
   MonitorSmartphone,
   Eye,
+  Layers,
 } from "lucide-react";
 
 export default function TabsNavigation({ activeTab, setActiveTab }) {
@@ -12,7 +13,8 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
     "flex items-center gap-2 px-5 py-3 text-base font-semibold transition whitespace-nowrap";
 
   return (
-    <div className="flex justify-center bg-white shadow-md rounded-lg overflow-x-auto no-scrollbar">
+    <div className="flex flex-wrap justify-center bg-white shadow-md rounded-lg">
+      {" "}
       {/* Accessibility Tab */}
       <button
         className={`${baseBtn} ${
@@ -25,7 +27,6 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <LayoutGrid className="w-5 h-5" />
         Checker
       </button>
-
       {/* Image ALT Tab */}
       <button
         className={`${baseBtn} ${
@@ -38,7 +39,6 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Image className="w-5 h-5" />
         Image ALT
       </button>
-
       {/* Contrast Checker Tab */}
       <button
         className={`${baseBtn} ${
@@ -51,7 +51,6 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Droplet className="w-5 h-5" />
         Contrast
       </button>
-
       {/* Character Counter Tab */}
       <button
         className={`${baseBtn} ${
@@ -64,7 +63,6 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Type className="w-5 h-5" />
         Text Tools
       </button>
-
       {/* <button
         className={`${baseBtn} ${
           activeTab === "responsive-preview"
@@ -76,7 +74,6 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <MonitorSmartphone className="w-5 h-5" />
         Responsive Preview
       </button> */}
-
       {/* ARIA & Tab Inspector Tab */}
       <button
         className={`${baseBtn} ${
@@ -89,6 +86,21 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Eye className="w-5 h-5" />
         ARIA & Tab Inspector
       </button>
+      {/* Unified Checker Tab */}
+      {/* <button
+        className={`${baseBtn} ${
+          activeTab === "unified"
+            ? "border-b-4 border-blue-500 text-blue-600 bg-blue-50"
+            : "text-gray-600 hover:text-blue-500"
+        }`}
+        onClick={() => setActiveTab("unified")}
+      >
+        <Layers className="w-5 h-5" />
+        Unified Checker
+        <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-900 text-white">
+          BETA
+        </span>
+      </button> */}
     </div>
   );
 }

@@ -24,13 +24,18 @@ const PORT = process.env.PORT || 4000;
 
 // 🌍 CORS — libere somente seu frontend do Heroku (ou * durante testes)
 const ALLOWED_ORIGIN = process.env.FRONTEND_ORIGIN || "*";
-app.use(cors({
-  origin: ALLOWED_ORIGIN,
-  methods: ["GET", "POST", "DELETE", "OPTIONS"],
-}));
+app.use(
+  cors({
+    origin: ALLOWED_ORIGIN,
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+  }),
+);
 
 // 📁 Torna os screenshots acessíveis publicamente
-app.use("/screenshots", express.static(path.join(__dirname, "public/screenshots")));
+app.use(
+  "/screenshots",
+  express.static(path.join(__dirname, "public/screenshots")),
+);
 
 // 📦 JSON do corpo (para rotas JSON como /api/check)
 app.use(bodyParser.json({ limit: "1mb" }));
@@ -41,8 +46,13 @@ app.use(altUploadRoute);
 // 🚀 Rota principal da análise
 app.post("/api/check", async (req, res) => {
   try {
-    const { url } = req.body;
+    const { url, includeAlts = true, includeViolations = true } = req.body;
+
     console.log("🌐 Checking URL:", url);
+    console.log("🧩 Analysis options:", {
+      includeAlts,
+      includeViolations,
+    });
 
     if (!url) return res.status(400).json({ error: "Missing URL" });
 
@@ -51,11 +61,21 @@ app.post("/api/check", async (req, res) => {
     const { browser, page, results } = await analyzePageAccessibility(url);
 
     const loadTime = await measureLoadTime(page);
-    const images = await extractImages(page);
+    const images = includeAlts ? await extractImages(page) : [];
     const videos = await extractVideos(page);
     const textContent = await extractText(page);
-    const violations = await handleViolations(page, results);
-    const score = calculateScore(violations, images, {}, videos, {}, textContent, {});
+    const violations = includeViolations
+      ? await handleViolations(page, results)
+      : [];
+    const score = calculateScore(
+      violations,
+      images,
+      {},
+      videos,
+      {},
+      textContent,
+      {},
+    );
 
     await browser.close();
 
@@ -71,7 +91,9 @@ app.post("/api/check", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Server error:", error);
-    res.status(500).json({ error: "Internal Server Error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
   }
 });
 

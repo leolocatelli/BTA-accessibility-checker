@@ -11,6 +11,8 @@ export default function AccessibilityChecker() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("Starting analysis...");
   const [deleteScheduled, setDeleteScheduled] = useState(false);
+  const [includeAlts, setIncludeAlts] = useState(true);
+  const [includeViolations, setIncludeViolations] = useState(true);
 
   // ✅ Dynamic loading messages based on Puppeteer stages
   const getMessageForProgress = (value) => {
@@ -57,16 +59,28 @@ export default function AccessibilityChecker() {
       return;
     }
 
+    if (!includeAlts && !includeViolations) {
+      alert("Please select at least one analysis option.");
+      return;
+    }
+
     setReport(null); // ✅ Clear old report
     setLoading(true);
     setDeleteScheduled(false);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/check`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url,
+            includeAlts,
+            includeViolations,
+          }),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -107,7 +121,9 @@ export default function AccessibilityChecker() {
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex flex-col items-center justify-center z-50 px-6">
           {/* ✅ Dynamic Progress Message */}
-          <p className="text-white text-lg mb-6 text-center animate-pulse">{message}</p>
+          <p className="text-white text-lg mb-6 text-center animate-pulse">
+            {message}
+          </p>
 
           {/* ✅ Progress Bar */}
           <div className="w-full max-w-md h-4 bg-gray-800 rounded-full shadow-inner overflow-hidden">
@@ -121,6 +137,32 @@ export default function AccessibilityChecker() {
 
       <div className="flex flex-col gap-4 p-6">
         <InputField url={url} setUrl={setUrl} />
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-gray-600 font-medium">Analysis options</p>
+
+          <div className="flex flex-wrap items-center gap-5 text-sm text-gray-700">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeViolations}
+                onChange={(e) => setIncludeViolations(e.target.checked)}
+                className="w-4 h-4 rounded-full"
+              />
+              <span>Violations</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeAlts}
+                onChange={(e) => setIncludeAlts(e.target.checked)}
+                className="w-4 h-4 rounded-full"
+              />
+              <span>Image ALT & Sizes</span>
+            </label>
+          </div>
+        </div>
+
         <SubmitButton onClick={checkAccessibility} loading={loading} />
       </div>
 

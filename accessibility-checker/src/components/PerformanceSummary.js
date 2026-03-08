@@ -1,10 +1,8 @@
 import { useTotalImageSize } from "../app/hooks/useTotalImageSize";
-import { useTotalResourceSize } from "../app/hooks/useTotalResourceSize";
-import { Image, Layers, Clock, Package } from "lucide-react";
+import { Image, Layers, Clock } from "lucide-react";
 
 export default function PerformanceSummary({ images, imageSizes, loadTime }) {
   const totalImageSize = useTotalImageSize(imageSizes);
-  const { totalSize: totalResourceSize, resourceBreakdown } = useTotalResourceSize();
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">

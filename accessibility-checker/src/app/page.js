@@ -9,6 +9,8 @@ import ColorContrastChecker from "../components/ColorContrastChecker";
 import CharacterCounter from "../components/CharacterCounter";
 import ResponsivePreviewTool from "../components/ResponsivePreviewTool";
 import AriaTabInspector from "@/components/AriaTabInspector";
+import UnifiedChecker from "../components/UnifiedChecker";
+
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");
@@ -38,6 +40,7 @@ export default function Home() {
         {activeTab === "contrast" && <ColorContrastChecker />}
         {activeTab === "text-tools" && <CharacterCounter />}
         {activeTab === "inspector" && <AriaTabInspector />}
+        {activeTab === "unified" && <UnifiedChecker />}
         {/* {activeTab === "responsive-preview" && <ResponsivePreviewTool />} */}
 
       </div>

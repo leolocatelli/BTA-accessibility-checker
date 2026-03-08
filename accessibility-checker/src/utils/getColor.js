@@ -13,5 +13,5 @@ export function getColor(img, checkedImages) {
   if (altText.split(" ").length === 1 || weakAlts.includes(altText)) return "#ffcc8f"; // Tailwind's bg-orange-300
 
   // Otherwise, it's a valid ALT but unreviewed, return yellow
-  return "#FEFCBF"; // Tailwind's bg-yellow-100
+  return "#fff"; // Tailwind's bg-yellow-100
 }

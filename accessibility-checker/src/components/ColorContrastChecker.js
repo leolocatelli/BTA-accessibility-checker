@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IoColorPaletteOutline } from "react-icons/io5";
 import { MdCheckCircle, MdCancel, MdOutlineImage } from "react-icons/md";
 
@@ -26,6 +26,7 @@ export default function ColorContrastChecker() {
   const [imageSrc, setImageSrc] = useState(null);
   const [filter, setFilter] = useState("normal");
   const [pickedColor, setPickedColor] = useState("");
+  const [colorHistory, setColorHistory] = useState([]);
   const [isPicking, setIsPicking] = useState(false);
   const [pickFeedback, setPickFeedback] = useState("");
 
@@ -45,6 +46,36 @@ export default function ColorContrastChecker() {
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (!file) continue;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setImageSrc(event.target.result);
+            setFilter("normal");
+            setPickedColor("");
+            setPickFeedback("");
+            setLensVisible(false);
+            setImageUrlInput("");
+          };
+
+          reader.readAsDataURL(file);
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
 
   // 📏 Contrast ratio
   const getContrastRatio = (hex1, hex2) => {
@@ -78,6 +109,13 @@ export default function ColorContrastChecker() {
     const cssText = `color: ${textColor}; background-color: ${bgColor};`;
     navigator.clipboard.writeText(cssText);
   };
+  const handleSwapColors = () => {
+    const currentText = textColor;
+    const currentBg = bgColor;
+
+    setTextColor(currentBg);
+    setBgColor(currentText);
+  };
 
   // 🖼️ Handle image upload (file)
   const handleImageUpload = (e) => {
@@ -96,12 +134,37 @@ export default function ColorContrastChecker() {
     reader.readAsDataURL(file);
   };
 
+  // Drag & Drop support
+  const handleDrop = (e) => {
+    e.preventDefault();
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImageSrc(event.target.result);
+      setFilter("normal");
+      setPickedColor("");
+      setPickFeedback("");
+      setLensVisible(false);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
   // 🔗 Handle image load from URL
   const handleLoadImageFromUrl = () => {
     const url = imageUrlInput.trim();
     if (!url) return;
 
-    setImageSrc(url);
+    const proxiedUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+
+    setImageSrc(proxiedUrl);
     setFilter("normal");
     setPickedColor("");
     setPickFeedback("");
@@ -147,13 +210,18 @@ export default function ColorContrastChecker() {
     const hex = rgbToHex(pixel[0], pixel[1], pixel[2]);
 
     setPickedColor(hex);
+
+    setColorHistory((prev) => {
+      const updated = [hex, ...prev.filter((c) => c !== hex)];
+      return updated.slice(0, 3);
+    });
     setIsPicking(false);
     setLensVisible(false);
 
     navigator.clipboard.writeText(hex).catch(() => {});
 
     setPickFeedback(
-      `Color ${hex} copied to clipboard. Paste it into the fields below.`
+      `Color ${hex} copied to clipboard. Paste it into the fields below.`,
     );
   };
 
@@ -195,52 +263,66 @@ export default function ColorContrastChecker() {
       {/* 🖼️ IMAGE + FILTERS + EYEDROPPER */}
       <section>
         {/* Upload button + URL input */}
-        <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-          
+        {/* Smart Image Input */}
+        <div className="mb-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
 
-          {/* Load from URL */}
-          <div className="w-full sm:max-w-md">
-            <div className="flex">
-              <input
-                type="text"
-                value={imageUrlInput}
-                onChange={(e) => setImageUrlInput(e.target.value)}
-                placeholder="https://www.example.com/image.jpg"
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
+          <input
+            type="text"
+            value={imageUrlInput}
+            onChange={(e) => setImageUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleLoadImageFromUrl();
+              }
+            }}
+            placeholder="Paste image URL, drop image, paste screenshot (Ctrl/Cmd+V) or click here to upload"
+            className="w-full px-4 py-3 text-sm border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          />
+        </div>
+
+        {!imageSrc && (
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 transition hover:bg-gray-100"
+          >
+            <div className="flex flex-col items-center gap-2 text-gray-600">
+              <MdOutlineImage className="text-3xl opacity-60" />
+
+              <p className="font-medium">Drag and drop an image here</p>
+
+              <p className="text-sm text-gray-500">
+                Or paste with <strong>Ctrl + V</strong> /{" "}
+                <strong>Cmd + V</strong>
+              </p>
+
+              <p className="text-xs text-gray-400">JPG, PNG, WEBP, GIF</p>
+
               <button
                 type="button"
-                onClick={handleLoadImageFromUrl}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-r-full shadow hover:bg-blue-700"
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow hover:bg-blue-700"
               >
-                Load
+                <MdOutlineImage className="w-4 h-4" />
+                Upload image
               </button>
             </div>
           </div>
-
-          {/* Upload from file */}
-          <div className="flex items-center gap-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full shadow hover:bg-blue-700"
-            >
-              <MdOutlineImage className="w-4 h-4" />
-              Upload images
-            </button>
-          </div>
-        </div>
-
+        )}
         {imageSrc && (
-          <div className="border rounded-lg p-4 bg-gray-50 relative">
+          <div
+            className="border rounded-lg p-4 bg-gray-50 relative"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
             {/* LENS */}
             {lensVisible && (
               <div
@@ -332,7 +414,7 @@ export default function ColorContrastChecker() {
                 onClick={() => {
                   setIsPicking(true);
                   setPickFeedback(
-                    "Click on the image to pick a color. It will be copied to your clipboard."
+                    "Click on the image to pick a color. It will be copied to your clipboard.",
                   );
                 }}
                 className="px-4 py-2 rounded text-sm font-medium shadow bg-blue-600 text-white hover:bg-blue-700"
@@ -355,11 +437,34 @@ export default function ColorContrastChecker() {
             </div>
           </div>
         )}
+
+        {colorHistory.length > 0 && (
+          <div className="flex items-center gap-2 text-sm mt-2">
+            <span className="text-gray-600">History:</span>
+
+            {colorHistory.map((color, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  navigator.clipboard.writeText(color);
+                  setPickedColor(color);
+                }}
+                className="flex items-center gap-1 px-2 py-1 border rounded bg-white hover:bg-gray-100"
+              >
+                <span
+                  className="w-4 h-4 border rounded"
+                  style={{ backgroundColor: color }}
+                />
+                {color}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 🎨 ORIGINAL CONTRAST TOOL */}
       <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6 items-center">
           {/* Background */}
           <div className="flex flex-col items-center">
             <label className="text-sm font-semibold mb-1">
@@ -378,6 +483,17 @@ export default function ColorContrastChecker() {
               className="mt-2 w-28 text-center p-1 border rounded-md text-sm shadow"
               maxLength={7}
             />
+          </div>
+
+          {/* Swap Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleSwapColors}
+              className="px-3 py-2  hover:bg-gray-100 transition"
+              title="Swap colors"
+            >
+              ⇄
+            </button>
           </div>
 
           {/* Text */}

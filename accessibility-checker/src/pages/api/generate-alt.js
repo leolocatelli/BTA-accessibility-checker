@@ -37,11 +37,11 @@ export default async function handler(req, res) {
       .toBuffer();
 
     const base64Image = `data:image/jpeg;base64,${resizedImageBuffer.toString(
-      "base64"
+      "base64",
     )}`;
 
     console.log(
-      `📤 Sending image to OpenAI with context keyword: ${keyword || "none"}`
+      `📤 Sending image to OpenAI with context keyword: ${keyword || "none"}`,
     );
 
     const userPrompt = keyword
@@ -66,6 +66,7 @@ export default async function handler(req, res) {
       max_tokens: 100,
     });
 
+    
     const rawAltText =
       responseAI.choices[0]?.message?.content || "No ALT text generated";
     const altText = rawAltText.replace(/"/g, "'");

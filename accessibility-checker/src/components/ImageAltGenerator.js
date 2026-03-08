@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Loader2,
   XCircle,
@@ -17,39 +17,89 @@ function convertGoogleDriveLink(url) {
   return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : url;
 }
 
-// 🔹 Novo helper para montar a URL dos assets BT
 function generateBTAssetURL(value) {
   if (!value || typeof value !== "string") return "";
 
   const trimmed = value.trim();
 
-  // Se já for URL completa (http/https), mantém como está
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed;
   }
 
-  // Se o usuário já colocou extensão, não adicionamos outra
   const hasExtension = /\.[a-zA-Z0-9]+$/.test(trimmed);
   const assetName = hasExtension ? trimmed : `${trimmed}.jpg`;
 
-  // Monta a URL no novo padrão
   return `https://images.brownthomas.com/bta/${assetName}`;
 }
 
 const uid = () => Math.random().toString(36).slice(2);
 
 export default function ImageAltGenerator() {
-  // { id, type: "url" | "file", url?, file?, preview?, keyword? }
   const [imageInputs, setImageInputs] = useState([]);
   const [altResults, setAltResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState("");
   const [error, setError] = useState("");
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const CHARACTER_LIMIT = 150;
 
-  // ref para acionar o input de arquivo via botão estilizado
   const fileInputRef = useRef(null);
+  const pasteAreaRef = useRef(null);
+
+  const addFilesToImageInputs = (files) => {
+    const fileList = Array.from(files || []);
+    if (!fileList.length) return;
+
+    const imageFiles = fileList.filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (!imageFiles.length) {
+      setWarning("No valid image file was found.");
+      return;
+    }
+
+    const tooBig = imageFiles.filter((file) => file.size > MAX_FILE_BYTES);
+    if (tooBig.length) {
+      setWarning(
+        `Some files exceeded ${Math.round(
+          MAX_FILE_BYTES / 1024 / 1024
+        )}MB and were skipped.`
+      );
+    }
+
+    const accepted = imageFiles.filter((file) => file.size <= MAX_FILE_BYTES);
+
+    setImageInputs((prev) => {
+      const newItems = accepted
+        .filter(
+          (file) =>
+            !prev.some(
+              (inp) =>
+                inp.type === "file" &&
+                inp.file?.name === file.name &&
+                inp.file?.size === file.size
+            )
+        )
+        .map((file) => ({
+          id: uid(),
+          type: "file",
+          file,
+          preview: URL.createObjectURL(file),
+          keyword: "",
+        }));
+
+      if (!newItems.length) {
+        setWarning("This image was already added.");
+        return prev;
+      }
+
+      setWarning("");
+      return [...prev, ...newItems];
+    });
+  };
 
   const handleUrlInput = (e) => {
     const rawInputs = e.target.value
@@ -60,70 +110,140 @@ export default function ImageAltGenerator() {
 
     const processedUrls = rawInputs.map((value) => generateBTAssetURL(value));
 
-    const newInputs = processedUrls
-      .filter(
-        (url) =>
-          !imageInputs.some(
-            (input) => input.type === "url" && input.url === url
-          )
-      )
-      .map((url) => ({ id: uid(), type: "url", url, keyword: "" }));
+    setImageInputs((prev) => {
+      const newInputs = processedUrls
+        .filter(
+          (url) =>
+            !prev.some((input) => input.type === "url" && input.url === url)
+        )
+        .map((url) => ({
+          id: uid(),
+          type: "url",
+          url,
+          keyword: "",
+        }));
 
-    setWarning(
-      newInputs.length < processedUrls.length
-        ? "Some images were already added and were skipped."
-        : ""
-    );
-    setImageInputs((prev) => [...prev, ...newInputs]);
+      setWarning(
+        newInputs.length < processedUrls.length
+          ? "Some images were already added and were skipped."
+          : ""
+      );
+
+      return [...prev, ...newInputs];
+    });
   };
 
   const handleFileInput = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const tooBig = files.filter((f) => f.size > MAX_FILE_BYTES);
-    if (tooBig.length) {
-      setWarning(
-        `Some files exceeded ${Math.round(
-          MAX_FILE_BYTES / 1024 / 1024
-        )}MB and were skipped.`
-      );
-    }
-
-    const accepted = files.filter((f) => f.size <= MAX_FILE_BYTES);
-
-    const newItems = accepted
-      .filter(
-        (f) =>
-          !imageInputs.some(
-            (inp) =>
-              inp.type === "file" &&
-              inp.file?.name === f.name &&
-              inp.file?.size === f.size
-          )
-      )
-      .map((file) => ({
-        id: uid(),
-        type: "file",
-        file,
-        preview: URL.createObjectURL(file), // mantemos para também usar no preview dos resultados
-        keyword: "",
-      }));
-
-    setImageInputs((prev) => [...prev, ...newItems]);
-    // limpa o input para permitir re-selecionar o mesmo arquivo
+    addFilesToImageInputs(files);
     e.target.value = "";
   };
+
+  const handlePaste = (event) => {
+    const items = event.clipboardData?.items;
+    if (!items || !items.length) return;
+
+    const pastedFiles = [];
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          const extension = file.type.split("/")[1] || "png";
+          const wrappedFile = new File(
+            [file],
+            `pasted-image-${Date.now()}.${extension}`,
+            {
+              type: file.type,
+            }
+          );
+          pastedFiles.push(wrappedFile);
+        }
+      }
+    }
+
+    if (pastedFiles.length > 0) {
+      event.preventDefault();
+      addFilesToImageInputs(pastedFiles);
+    }
+  };
+
+  const handleDragEnter = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(event.dataTransfer?.files || []);
+    if (!files.length) return;
+
+    addFilesToImageInputs(files);
+  };
+
+  useEffect(() => {
+    const onPaste = (event) => {
+      const activeElement = document.activeElement;
+      const tagName = activeElement?.tagName?.toLowerCase();
+
+      const isTypingField =
+        tagName === "input" ||
+        tagName === "textarea" ||
+        activeElement?.isContentEditable;
+
+      if (isTypingField) return;
+
+      handlePaste(event);
+    };
+
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      imageInputs.forEach((item) => {
+        if (item?.type === "file" && item.preview) {
+          try {
+            URL.revokeObjectURL(item.preview);
+          } catch {}
+        }
+      });
+    };
+  }, [imageInputs]);
 
   const removeImage = (indexToRemove) => {
     setImageInputs((prev) => {
       const clone = [...prev];
       const item = clone[indexToRemove];
+
       if (item?.type === "file" && item.preview) {
         try {
           URL.revokeObjectURL(item.preview);
         } catch {}
       }
+
       clone.splice(indexToRemove, 1);
       return clone;
     });
@@ -131,6 +251,7 @@ export default function ImageAltGenerator() {
 
   const generateAltTexts = async () => {
     if (imageInputs.length === 0) return;
+
     setLoading(true);
     setAltResults([]);
     setError("");
@@ -159,10 +280,11 @@ export default function ImageAltGenerator() {
               }),
             });
 
-            if (!response.ok)
+            if (!response.ok) {
               throw new Error(
                 `Server error: ${response.status} ${response.statusText}`
               );
+            }
 
             const data = await response.json();
             altText = data.altText || "";
@@ -187,15 +309,15 @@ export default function ImageAltGenerator() {
             { method: "POST", body: form }
           );
 
-          if (!response.ok)
+          if (!response.ok) {
             throw new Error(
               `Server error: ${response.status} ${response.statusText}`
             );
+          }
 
           const data = await response.json();
           altText = data.altText || data.alt || "";
 
-          // guarda também o preview para a seção de resultados
           newResults.push({
             id: item.id,
             preview: item.preview || item.file.name,
@@ -207,29 +329,43 @@ export default function ImageAltGenerator() {
       setAltResults(newResults);
     } catch (err) {
       console.error("❌ Error generating ALT texts:", err);
-      setError("Some items failed. Check file types/sizes or try again.");
+      setError("Some items failed. Check file types, sizes, or try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCopy = (index, altText) => {
-    navigator.clipboard.writeText(altText);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
+  const handleCopy = async (index, altText) => {
+    try {
+      await navigator.clipboard.writeText(altText);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg">
-      {/* Header */}
-
-      {/* URLs */}
+    <div
+      ref={pasteAreaRef}
+      onPaste={handlePaste}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      tabIndex={0}
+      className={`p-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        isDragging ? "ring-2 ring-blue-500 bg-blue-50" : ""
+      }`}
+      aria-label="Image ALT Generator area"
+    >
       <label
         htmlFor="alt-urls"
         className="block text-sm font-medium text-gray-700 mb-1"
       >
         Image URLs (one per line)
       </label>
+
       <textarea
         id="alt-urls"
         rows="4"
@@ -238,12 +374,28 @@ export default function ImageAltGenerator() {
         onChange={handleUrlInput}
       />
 
-      {/* Upload button (tema) */}
+      <div
+        className={`mt-3 rounded-xl border-2 border-dashed p-5 text-center transition ${
+          isDragging
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300 bg-gray-50"
+        }`}
+      >
+        <p className="text-sm font-medium text-gray-700">
+          Drag and drop images here
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          Or paste with <strong>Ctrl + V</strong> / <strong>Cmd + V</strong>,
+          including screenshots from Windows Snipping Tool
+        </p>
+      </div>
+
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="text-xs text-gray-500">
           Accepted: JPG, PNG, WEBP, GIF • Max{" "}
           {Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB per file
         </div>
+
         <div>
           <input
             ref={fileInputRef}
@@ -265,12 +417,13 @@ export default function ImageAltGenerator() {
         </div>
       </div>
 
-      {/* Alerts */}
       {warning && (
         <div className="mt-3 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-yellow-600" /> {warning}
+          <AlertTriangle className="w-5 h-5 text-yellow-600" />
+          {warning}
         </div>
       )}
+
       {error && (
         <p
           className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-2"
@@ -280,7 +433,6 @@ export default function ImageAltGenerator() {
         </p>
       )}
 
-      {/* Selected items */}
       {imageInputs.length > 0 && (
         <div className="mt-5 bg-gray-50 p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between mb-2">
@@ -336,9 +488,13 @@ export default function ImageAltGenerator() {
                       className="p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={input.keyword}
                       onChange={(e) => {
-                        const updated = [...imageInputs];
-                        updated[index].keyword = e.target.value;
-                        setImageInputs(updated);
+                        setImageInputs((prev) =>
+                          prev.map((item, i) =>
+                            i === index
+                              ? { ...item, keyword: e.target.value }
+                              : item
+                          )
+                        );
                       }}
                     />
                   </div>
@@ -349,7 +505,6 @@ export default function ImageAltGenerator() {
         </div>
       )}
 
-      {/* Generate */}
       <div className="mt-5">
         <button
           className="w-full md:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2 disabled:opacity-60"
@@ -367,12 +522,12 @@ export default function ImageAltGenerator() {
         </button>
       </div>
 
-      {/* Results */}
       {altResults.length > 0 && (
         <div className="mt-6 p-5 bg-gray-50 rounded-2xl border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Generated ALT Texts ({altResults.length})
           </h3>
+
           <div className="grid grid-cols-1 gap-4">
             {altResults.map((result, index) => (
               <div
@@ -400,12 +555,13 @@ export default function ImageAltGenerator() {
                     >
                       {copiedIndex === index ? (
                         <>
-                          <CheckCircle className="w-4 h-4 text-green-600" />{" "}
+                          <CheckCircle className="w-4 h-4 text-green-600" />
                           Copied!
                         </>
                       ) : (
                         <>
-                          <Clipboard className="w-4 h-4" /> Copy ALT Text
+                          <Clipboard className="w-4 h-4" />
+                          Copy ALT Text
                         </>
                       )}
                     </button>
