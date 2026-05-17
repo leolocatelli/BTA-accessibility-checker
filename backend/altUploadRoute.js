@@ -48,23 +48,23 @@ router.post("/api/alt-from-upload", upload.single("file"), async (req, res) => {
           role: "system",
           content: `You generate high-quality, accessible ALT text for images.
 
-Rules:
-- Use clear, concise, and descriptive language
-- Focus on what is important in the image
-- Avoid phrases like "image of" or "picture of"
-- Prioritise clarity for screen readers
-- Respect the character limit (${charLimit})
+                Rules:
+                - Use clear, concise, and descriptive language
+                - Focus on what is important in the image
+                - Avoid phrases like "image of" or "picture of"
+                - Prioritise clarity for screen readers
+                - Respect the character limit (${charLimit})
 
-Language rules:
-- Use British/Irish English spelling and vocabulary
-- Avoid American English
-- Use natural wording commonly used in Ireland and the UK
-- Keep tone neutral and professional
+                Language rules:
+                - Use British/Irish English spelling and vocabulary
+                - Avoid American English
+                - Use natural wording commonly used in Ireland and the UK
+                - Keep tone neutral and professional
 
-Accessibility rules:
-- Describe key elements, context, and purpose
-- Include relevant objects, people, or actions when meaningful
-- Avoid unnecessary details`,
+                Accessibility rules:
+                - Describe key elements, context, and purpose
+                - Include relevant objects, people, or actions when meaningful
+                - Avoid unnecessary details`,
         },
         {
           role: "user",
