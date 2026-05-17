@@ -20,6 +20,15 @@ export default function SeoLinkFormModal({
     }
   };
 
+  const cleanContentLinkValue = (value) => {
+    if (!value || typeof value !== "string") return "";
+
+    const cgidMatch = value.match(/'cgid',\s*'([^']+)'/);
+    if (cgidMatch?.[1]) return cgidMatch[1];
+
+    return value;
+  };
+
   const typePill = (active) =>
     `px-3 py-1.5 text-sm rounded-md border transition ${
       active
@@ -28,13 +37,18 @@ export default function SeoLinkFormModal({
     }`;
 
   const setType = (type) => {
-    setLinkForm((prev) => ({
-      ...prev,
-      type,
-      ariaLabel: suggestAriaLabel
-        ? suggestAriaLabel(type, prev.selectedText || "", prev.value || "")
-        : prev.ariaLabel,
-    }));
+    setLinkForm((prev) => {
+      const cleanValue = cleanContentLinkValue(prev.value || "");
+
+      return {
+        ...prev,
+        type,
+        value: cleanValue,
+        ariaLabel: suggestAriaLabel
+          ? suggestAriaLabel(type, prev.selectedText || "", cleanValue)
+          : prev.ariaLabel,
+      };
+    });
   };
 
   const handleValueChange = (e) => {
@@ -77,7 +91,6 @@ export default function SeoLinkFormModal({
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
-        {" "}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
             <h3 className="font-semibold text-gray-900">
@@ -100,6 +113,7 @@ export default function SeoLinkFormModal({
             <X className="w-4 h-4" />
           </button>
         </div>
+
         <div className="flex flex-wrap gap-2 mb-4">
           <button
             type="button"
@@ -133,6 +147,7 @@ export default function SeoLinkFormModal({
             URL
           </button>
         </div>
+
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium mb-1.5">
@@ -179,6 +194,7 @@ export default function SeoLinkFormModal({
             </p>
           </div>
         </div>
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             onMouseDown={handleMouseAction(onConfirm)}

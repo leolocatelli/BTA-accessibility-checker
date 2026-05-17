@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ArrowUp,
-  ArrowDown,
-  Repeat,
-  Trash2,
-} from "lucide-react";
+import { ArrowUp, ArrowDown, Repeat, Trash2 } from "lucide-react";
 
 export default function SeoBlockCard({
   block,
@@ -23,6 +18,7 @@ export default function SeoBlockCard({
   onParagraphMouseOver,
   onParagraphMouseMove,
   onParagraphMouseOut,
+  onParagraphPaste,
 }) {
   const compactIconBtn =
     "inline-flex items-center justify-center w-8 h-8 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-100 transition disabled:opacity-50";
@@ -76,7 +72,11 @@ export default function SeoBlockCard({
           <button
             onClick={onConvert}
             className={compactActionBtn}
-            title={block.type === "title" ? "Convert to Paragraph" : "Convert to Title"}
+            title={
+              block.type === "title"
+                ? "Convert to Paragraph"
+                : "Convert to Title"
+            }
             type="button"
           >
             <Repeat className="w-3.5 h-3.5" />
@@ -110,6 +110,7 @@ export default function SeoBlockCard({
           contentEditable
           suppressContentEditableWarning
           onInput={onParagraphInput}
+          onPaste={onParagraphPaste}
           onMouseUp={onParagraphMouseUp}
           onMouseDown={onParagraphClick}
           onMouseOver={onParagraphMouseOver}

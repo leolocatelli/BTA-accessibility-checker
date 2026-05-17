@@ -3,6 +3,11 @@
 import { useMemo, useRef, useState } from "react";
 import { PencilLine } from "lucide-react";
 
+import {
+  isConvertibleBrandUrl,
+  suggestContentLinkFromUrl,
+} from "@/utils/seo-footer/seoFooterLinkConversion";
+
 import SeoBlockCard from "./SeoBlockCard";
 import SeoLinkTypeModal from "./SeoLinkTypeModal";
 import SeoLinkFormModal from "./SeoLinkFormModal";
@@ -66,6 +71,14 @@ export default function SeoFooterEditor({
     ariaLabel: "",
   });
 
+  const [conversionModal, setConversionModal] = useState({
+    open: false,
+    blockId: null,
+    originalUrl: "",
+    suggestedHref: "",
+    linkText: "",
+  });
+
   const compactActionBtn =
     "inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-100 transition";
 
@@ -86,6 +99,15 @@ export default function SeoFooterEditor({
       value: "",
       ariaLabel: "",
     });
+
+    setConversionModal({
+      open: false,
+      blockId: null,
+      originalUrl: "",
+      suggestedHref: "",
+      linkText: "",
+    });
+
     setLinkContext({
       blockId: null,
       selectedText: "",
@@ -145,6 +167,66 @@ export default function SeoFooterEditor({
     const el = paragraphRefs.current[blockId];
     if (!el) return;
     updateSeoBlock(blockId, el.innerHTML);
+  };
+
+  const normalizePastedClickUpHtml = (html) => {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html;
+
+    wrapper.querySelectorAll("*").forEach((el) => {
+      if (el.tagName.toLowerCase() === "a") {
+        const href = el.getAttribute("href") || "";
+        const text = el.textContent || "";
+
+        el.setAttribute("href", href);
+        el.setAttribute("aria-label", `View ${text.trim()}`);
+        if (isConvertibleBrandUrl(href)) {
+          const suggestion = suggestContentLinkFromUrl(href);
+
+          el.setAttribute("class", "seo-link-underline seo-link-warning");
+          el.setAttribute("data-needs-conversion", "true");
+          el.setAttribute("data-original-url", href);
+          el.setAttribute("data-suggested-href", suggestion.suggestedHref);
+          el.setAttribute("data-conversion-source", suggestion.source);
+        } else {
+          el.setAttribute("class", "seo-link-underline");
+          el.setAttribute("data-needs-conversion", "false");
+        }
+        el.setAttribute("data-link-type", detectLinkTypeFromHref(href));
+        el.setAttribute(
+          "data-link-value",
+          extractValueFromHref(href, detectLinkTypeFromHref(href)),
+        );
+
+        return;
+      }
+
+      el.replaceWith(document.createTextNode(el.textContent || ""));
+    });
+
+    return wrapper.innerHTML;
+  };
+
+  const handleParagraphPaste = (event, blockId) => {
+    const html = event.clipboardData.getData("text/html");
+    const plainText = event.clipboardData.getData("text/plain");
+
+    if (!html) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const normalizedHtml = normalizePastedClickUpHtml(html);
+    const currentBlock = seoBlocks.find((block) => block.id === blockId);
+
+    const nextHtml = currentBlock?.content
+      ? `${currentBlock.content} ${normalizedHtml}`
+      : normalizedHtml || plainText;
+
+    updateSeoBlock(blockId, nextHtml);
+
+    onAnnounce?.("Pasted content with embedded links detected");
   };
 
   const selectionBelongsToBlock = (range, blockId) => {
@@ -303,7 +385,10 @@ export default function SeoFooterEditor({
     target.setAttribute("aria-label", nextAriaLabel);
     target.setAttribute("class", "seo-link-underline");
     target.setAttribute("data-link-type", nextType);
-    target.setAttribute("data-link-value", nextValue);
+    const cgidMatch = suggestedHref.match(/'cgid',\s*'([^']+)'/);
+    const categoryId = cgidMatch?.[1] || "";
+
+    target.setAttribute("data-link-value", categoryId);
 
     return wrapper.innerHTML;
   };
@@ -407,6 +492,25 @@ export default function SeoFooterEditor({
     setLinkTypeModalOpen(false);
 
     const href = anchor.getAttribute("href") || "";
+    const needsConversion =
+      anchor.getAttribute("data-needs-conversion") === "true";
+
+    if (needsConversion) {
+      const originalUrl = anchor.getAttribute("data-original-url") || href;
+      const suggestedHref =
+        anchor.getAttribute("data-suggested-href") ||
+        suggestContentLinkFromUrl(originalUrl).suggestedHref;
+
+      setConversionModal({
+        open: true,
+        blockId,
+        originalUrl,
+        suggestedHref,
+        linkText: anchor.textContent || "",
+      });
+
+      return;
+    }
     const type =
       anchor.getAttribute("data-link-type") || detectLinkTypeFromHref(href);
     const value =
@@ -446,6 +550,49 @@ export default function SeoFooterEditor({
 
     setLinkMode("edit");
     setLinkFormModalOpen(true);
+  };
+  const closeConversionModal = () => {
+    setConversionModal({
+      open: false,
+      blockId: null,
+      originalUrl: "",
+      suggestedHref: "",
+      linkText: "",
+    });
+  };
+
+  const confirmContentLinkConversion = () => {
+    const { blockId, originalUrl, suggestedHref, linkText } = conversionModal;
+
+    if (!blockId || !originalUrl || !suggestedHref) return;
+
+    const currentBlock = seoBlocks.find((block) => block.id === blockId);
+    if (!currentBlock) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = currentBlock.content;
+
+    const target = Array.from(wrapper.querySelectorAll("a")).find((a) => {
+      return (
+        (a.getAttribute("data-original-url") || a.getAttribute("href")) ===
+          originalUrl && (a.textContent || "") === linkText
+      );
+    });
+
+    if (!target) return;
+
+    target.setAttribute("href", suggestedHref);
+    target.setAttribute("class", "seo-link-underline");
+    target.setAttribute("data-needs-conversion", "false");
+    target.setAttribute("data-link-type", "category");
+    target.setAttribute("data-link-value", suggestedHref);
+
+    target.removeAttribute("data-suggested-href");
+    target.removeAttribute("data-conversion-source");
+
+    updateSeoBlock(blockId, wrapper.innerHTML);
+    closeConversionModal();
+    onAnnounce?.("Link converted to content link function");
   };
 
   const openLinkForm = (type) => {
@@ -621,6 +768,38 @@ export default function SeoFooterEditor({
           outline: none;
           box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.28);
         }
+
+        .seo-link-warning {
+          color: rgb(194 65 12);
+          background: rgba(251, 146, 60, 0.08);
+          border-bottom-color: rgba(234, 88, 12, 0.55);
+          position: relative;
+          border-bottom-width: 1.5px;
+        }
+
+        .seo-link-warning::after {
+          content: "!";
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 11px;
+          height: 11px;
+          margin-left: 3px;
+          border-radius: 999px;
+          background: rgba(234, 88, 12, 0.75);
+          color: white;
+          font-size: 8px;
+          font-weight: 700;
+          line-height: 1;
+          vertical-align: super;
+          transform: translateY(-1px);
+        }
+
+        .seo-link-warning:hover {
+          color: rgb(154 52 18);
+          background: rgba(251, 146, 60, 0.12);
+          border-bottom-color: rgba(194, 65, 12, 0.75);
+        }
       `}</style>
 
       <div className="flex flex-wrap gap-3 justify-between items-start">
@@ -680,6 +859,55 @@ export default function SeoFooterEditor({
         onRemove={removeCurrentLink}
         suggestAriaLabel={suggestAriaLabel}
       />
+
+      {conversionModal.open && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/30 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Content Link Function Suggested
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-600">
+              This Brown Thomas/Arnotts URL can be converted into a content link
+              function.
+            </p>
+
+            <div className="mt-4 space-y-3 text-sm">
+              <div>
+                <p className="font-semibold text-gray-700">Original URL</p>
+                <p className="mt-1 break-all rounded-lg bg-gray-50 p-2 text-gray-700">
+                  {conversionModal.originalUrl}
+                </p>
+              </div>
+
+              <div>
+                <p className="font-semibold text-gray-700">Suggested href</p>
+                <p className="mt-1 break-all rounded-lg bg-orange-50 p-2 text-orange-800">
+                  {conversionModal.suggestedHref}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeConversionModal}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+              >
+                Keep URL
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmContentLinkConversion}
+                className="rounded-md bg-orange-600 px-4 py-2 text-sm text-white hover:bg-orange-700 transition"
+              >
+                Convert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {hoverTooltip.open && (
         <div
@@ -756,6 +984,7 @@ export default function SeoFooterEditor({
               onParagraphInput={(e) =>
                 updateSeoBlock(block.id, e.currentTarget.innerHTML)
               }
+              onParagraphPaste={(e) => handleParagraphPaste(e, block.id)}
               onParagraphMouseUp={(e) => handleParagraphSelection(e, block.id)}
               onParagraphClick={(e) => handleParagraphClick(e, block.id)}
               onParagraphMouseOver={showTooltip}
