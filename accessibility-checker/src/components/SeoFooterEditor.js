@@ -82,15 +82,24 @@ export default function SeoFooterEditor({
   const compactActionBtn =
     "inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-100 transition";
 
+  const extractCgidFromContentLink = (href) => {
+    if (!href || typeof href !== "string") return "";
+
+    const match = href.match(/'cgid',\s*'([^']+)'/);
+    return match?.[1] || "";
+  };
+
   const closeAllLinkUi = () => {
     setLinkTypeModalOpen(false);
     setLinkFormModalOpen(false);
+
     setEditTarget({
       blockId: null,
       originalHref: "",
       originalText: "",
       originalAriaLabel: "",
     });
+
     setHoverTooltip({
       open: false,
       x: 0,
@@ -112,6 +121,7 @@ export default function SeoFooterEditor({
       blockId: null,
       selectedText: "",
     });
+
     setSelectionData({
       blockId: null,
       start: null,
@@ -180,6 +190,7 @@ export default function SeoFooterEditor({
 
         el.setAttribute("href", href);
         el.setAttribute("aria-label", `View ${text.trim()}`);
+
         if (isConvertibleBrandUrl(href)) {
           const suggestion = suggestContentLinkFromUrl(href);
 
@@ -188,15 +199,20 @@ export default function SeoFooterEditor({
           el.setAttribute("data-original-url", href);
           el.setAttribute("data-suggested-href", suggestion.suggestedHref);
           el.setAttribute("data-conversion-source", suggestion.source);
+          el.setAttribute("data-link-type", "category");
+          el.setAttribute(
+            "data-link-value",
+            extractCgidFromContentLink(suggestion.suggestedHref) ||
+              extractValueFromHref(href, "category"),
+          );
         } else {
+          const type = detectLinkTypeFromHref(href);
+
           el.setAttribute("class", "seo-link-underline");
           el.setAttribute("data-needs-conversion", "false");
+          el.setAttribute("data-link-type", type);
+          el.setAttribute("data-link-value", extractValueFromHref(href, type));
         }
-        el.setAttribute("data-link-type", detectLinkTypeFromHref(href));
-        el.setAttribute(
-          "data-link-value",
-          extractValueFromHref(href, detectLinkTypeFromHref(href)),
-        );
 
         return;
       }
@@ -211,9 +227,7 @@ export default function SeoFooterEditor({
     const html = event.clipboardData.getData("text/html");
     const plainText = event.clipboardData.getData("text/plain");
 
-    if (!html) {
-      return;
-    }
+    if (!html) return;
 
     event.preventDefault();
 
@@ -225,7 +239,6 @@ export default function SeoFooterEditor({
       : normalizedHtml || plainText;
 
     updateSeoBlock(blockId, nextHtml);
-
     onAnnounce?.("Pasted content with embedded links detected");
   };
 
@@ -308,6 +321,7 @@ export default function SeoFooterEditor({
       NodeFilter.SHOW_TEXT,
       null,
     );
+
     let node = walker.nextNode();
 
     while (node) {
@@ -344,6 +358,7 @@ export default function SeoFooterEditor({
     anchor.setAttribute("class", "seo-link-underline");
     anchor.setAttribute("data-link-type", type);
     anchor.setAttribute("data-link-value", value);
+    anchor.setAttribute("data-needs-conversion", "false");
     anchor.textContent = selectedText;
 
     range.deleteContents();
@@ -385,10 +400,12 @@ export default function SeoFooterEditor({
     target.setAttribute("aria-label", nextAriaLabel);
     target.setAttribute("class", "seo-link-underline");
     target.setAttribute("data-link-type", nextType);
-    const cgidMatch = suggestedHref.match(/'cgid',\s*'([^']+)'/);
-    const categoryId = cgidMatch?.[1] || "";
+    target.setAttribute("data-link-value", nextValue);
+    target.setAttribute("data-needs-conversion", "false");
 
-    target.setAttribute("data-link-value", categoryId);
+    target.removeAttribute("data-original-url");
+    target.removeAttribute("data-suggested-href");
+    target.removeAttribute("data-conversion-source");
 
     return wrapper.innerHTML;
   };
@@ -511,12 +528,21 @@ export default function SeoFooterEditor({
 
       return;
     }
+
     const type =
       anchor.getAttribute("data-link-type") || detectLinkTypeFromHref(href);
+
+    const rawValue = anchor.getAttribute("data-link-value") || "";
+    const contentLinkCgid = extractCgidFromContentLink(href);
+    const cleanedRawValue = extractCgidFromContentLink(rawValue) || rawValue;
+
     const value =
-      anchor.getAttribute("data-link-value") ||
+      cleanedRawValue ||
+      contentLinkCgid ||
       extractValueFromHref(href, type);
+
     const selectedText = anchor.textContent || "";
+
     const ariaLabel =
       anchor.getAttribute("aria-label") ||
       suggestAriaLabel(type, selectedText, value);
@@ -551,6 +577,7 @@ export default function SeoFooterEditor({
     setLinkMode("edit");
     setLinkFormModalOpen(true);
   };
+
   const closeConversionModal = () => {
     setConversionModal({
       open: false,
@@ -581,11 +608,19 @@ export default function SeoFooterEditor({
 
     if (!target) return;
 
+    const categoryId =
+      extractCgidFromContentLink(suggestedHref) ||
+      extractValueFromHref(originalUrl, "category");
+
     target.setAttribute("href", suggestedHref);
     target.setAttribute("class", "seo-link-underline");
     target.setAttribute("data-needs-conversion", "false");
     target.setAttribute("data-link-type", "category");
-    target.setAttribute("data-link-value", suggestedHref);
+    target.setAttribute("data-link-value", categoryId);
+    target.setAttribute(
+      "aria-label",
+      suggestAriaLabel("category", linkText, categoryId),
+    );
 
     target.removeAttribute("data-suggested-href");
     target.removeAttribute("data-conversion-source");
