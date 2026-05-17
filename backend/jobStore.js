@@ -29,6 +29,8 @@ const createJob = (jobId) => {
     seoSummary: null,
     keywords: [],
     metaDescription: null,
+    srt: null,
+    vtt: null,
     error: null,
   };
 };

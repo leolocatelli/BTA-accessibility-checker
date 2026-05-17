@@ -12,20 +12,10 @@ export default function VideoTranscriptExtractor() {
   const [jobStatus, setJobStatus] = useState("idle");
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [generateSubtitles, setGenerateSubtitles] = useState(false);
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Extract transcript from media
-        </h2>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Upload a video or audio file to extract transcripts and generate
-          SEO-friendly content automatically.
-        </p>
-      </div>
-
       <TranscriptUploadBox
         selectedFile={selectedFile}
         setSelectedFile={setSelectedFile}
@@ -33,28 +23,32 @@ export default function VideoTranscriptExtractor() {
         setJobStatus={setJobStatus}
         setResult={setResult}
         setErrorMessage={setErrorMessage}
+        generateSubtitles={generateSubtitles}
+        setGenerateSubtitles={setGenerateSubtitles}
       />
 
       {errorMessage && (
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {errorMessage}
         </div>
       )}
 
       {jobStatus !== "idle" && (
-        <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-          Current status: <span className="font-semibold">{jobStatus}</span>
+        <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          Status: <span className="font-semibold capitalize">{jobStatus}</span>
         </div>
       )}
 
       {result && (
-          <div className="mt-8 space-y-6">
+        <div className="mt-6 space-y-6">
           <TranscriptResult transcript={result.transcript} />
 
           <TranscriptSeoPanel
             seoSummary={result.seoSummary}
             keywords={result.keywords}
             metaDescription={result.metaDescription}
+            srt={result.srt}
+            vtt={result.vtt}
           />
         </div>
       )}

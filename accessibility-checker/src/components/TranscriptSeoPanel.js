@@ -4,16 +4,87 @@ export default function TranscriptSeoPanel({
   seoSummary,
   keywords = [],
   metaDescription,
+  srt,
+  vtt,
 }) {
+  /**
+   * Copies text content to clipboard.
+   *
+   * @param {string} text
+   */
   const copyText = async (text) => {
     if (!text) return;
 
     await navigator.clipboard.writeText(text);
   };
 
+  /**
+   * Downloads a generated subtitle file.
+   *
+   * @param {string} content
+   * @param {string} filename
+   * @param {string} mimeType
+   */
+  const downloadFile = (content, filename, mimeType) => {
+    if (!content) return;
+
+    const blob = new Blob([content], {
+      type: mimeType,
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-md">
-      <h3 className="mb-4 text-xl font-bold text-gray-800">SEO Content</h3>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h3 className="text-xl font-bold text-gray-800">
+          SEO Content
+        </h3>
+
+        {(srt || vtt) && (
+          <div className="flex gap-2">
+            {srt && (
+              <button
+                type="button"
+                onClick={() =>
+                  downloadFile(
+                    srt,
+                    "subtitles.srt",
+                    "application/x-subrip",
+                  )
+                }
+                className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-100"
+              >
+                Download SRT
+              </button>
+            )}
+
+            {vtt && (
+              <button
+                type="button"
+                onClick={() =>
+                  downloadFile(
+                    vtt,
+                    "subtitles.vtt",
+                    "text/vtt",
+                  )
+                }
+                className="rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-700 transition hover:bg-purple-100"
+              >
+                Download VTT
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-5">
         <div>

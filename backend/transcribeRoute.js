@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require("uuid");
 const extractAudio = require("./extractAudio");
 const transcribeAudio = require("./transcribeAudio");
 const generateSeoFromTranscript = require("./generateSeoFromTranscript");
+const { generateSubtitles } = require("./generateSubtitles");
 const { createJob, updateJob, getJob } = require("./jobStore");
 
 const router = express.Router();
@@ -87,7 +88,12 @@ const upload = multer({
  *
  * This avoids keeping the HTTP request open while FFmpeg and OpenAI work.
  */
-const processTranscriptionJob = async (jobId, filePath, mimeType) => {
+const processTranscriptionJob = async (
+  jobId,
+  filePath,
+  mimeType,
+  shouldGenerateSubtitles = false,
+) => {
   let audioPath = null;
 
   try {
@@ -106,12 +112,23 @@ const processTranscriptionJob = async (jobId, filePath, mimeType) => {
     const transcript = await transcribeAudio(audioPath);
     const seoContent = await generateSeoFromTranscript(transcript);
 
+    let subtitleContent = {
+      srt: null,
+      vtt: null,
+    };
+
+    if (shouldGenerateSubtitles) {
+      subtitleContent = await generateSubtitles(audioPath);
+    }
+
     updateJob(jobId, {
       status: "done",
       transcript,
       seoSummary: seoContent.seoSummary,
       keywords: seoContent.keywords,
       metaDescription: seoContent.metaDescription,
+      srt: subtitleContent.srt,
+      vtt: subtitleContent.vtt,
     });
   } catch (error) {
     updateJob(jobId, {
@@ -148,9 +165,16 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     const jobId = uuidv4();
 
+    const shouldGenerateSubtitles = req.body.generateSubtitles === "true";
+
     createJob(jobId);
 
-    processTranscriptionJob(jobId, req.file.path, req.file.mimetype);
+    processTranscriptionJob(
+      jobId,
+      req.file.path,
+      req.file.mimetype,
+      shouldGenerateSubtitles,
+    );
 
     return res.status(202).json({
       jobId,
