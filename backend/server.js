@@ -1,5 +1,7 @@
 // backend/server.js
+
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -16,14 +18,20 @@ const { handleViolations } = require("./handleViolations.cjs");
 const { measureLoadTime } = require("./measureLoadTime");
 const { registerInspectRoute } = require("./inspectRoute");
 
-// ✅ importa a nova rota de upload local
 const altUploadRoute = require("./altUploadRoute");
+const transcribeRoute = require("./transcribeRoute");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// 🌍 CORS — libere somente seu frontend do Heroku (ou * durante testes)
+/**
+ * CORS configuration.
+ *
+ * In production, FRONTEND_ORIGIN should point to the deployed frontend URL.
+ * During local development, it usually points to http://localhost:3000.
+ */
 const ALLOWED_ORIGIN = process.env.FRONTEND_ORIGIN || "*";
+
 app.use(
   cors({
     origin: ALLOWED_ORIGIN,
@@ -31,19 +39,46 @@ app.use(
   }),
 );
 
-// 📁 Torna os screenshots acessíveis publicamente
+/**
+ * Public screenshots folder.
+ *
+ * This makes generated accessibility screenshots available through:
+ * /screenshots/:filename
+ */
 app.use(
   "/screenshots",
   express.static(path.join(__dirname, "public/screenshots")),
 );
 
-// 📦 JSON do corpo (para rotas JSON como /api/check)
+/**
+ * JSON parser for routes that receive JSON payloads, such as /api/check.
+ *
+ * Multipart upload routes use Multer instead, so they do not depend on this.
+ */
 app.use(bodyParser.json({ limit: "1mb" }));
 
-// 🆕 Rota para upload local de imagens → gerar ALT (multipart em memória)
+/**
+ * Image ALT generation route.
+ *
+ * This route handles local image uploads and sends them to the AI ALT generator.
+ */
 app.use(altUploadRoute);
 
-// 🚀 Rota principal da análise
+/**
+ * Video/audio transcription route.
+ *
+ * Final endpoints:
+ * POST /api/transcribe
+ * GET /api/transcribe/:jobId
+ */
+app.use("/api/transcribe", transcribeRoute);
+
+/**
+ * Main accessibility analysis route.
+ *
+ * This endpoint opens the target page with Puppeteer, extracts accessibility data,
+ * generates screenshots for violations, and returns the final report.
+ */
 app.post("/api/check", async (req, res) => {
   try {
     const { url, includeAlts = true, includeViolations = true } = req.body;
@@ -54,9 +89,12 @@ app.post("/api/check", async (req, res) => {
       includeViolations,
     });
 
-    if (!url) return res.status(400).json({ error: "Missing URL" });
+    if (!url) {
+      return res.status(400).json({ error: "Missing URL" });
+    }
 
-    cleanupScreenshots(); // Apaga screenshots antigos
+    // Remove old screenshots before starting a new accessibility scan.
+    cleanupScreenshots();
 
     const { browser, page, results } = await analyzePageAccessibility(url);
 
@@ -67,6 +105,7 @@ app.post("/api/check", async (req, res) => {
     const violations = includeViolations
       ? await handleViolations(page, results)
       : [];
+
     const score = calculateScore(
       violations,
       images,
@@ -91,35 +130,56 @@ app.post("/api/check", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Server error:", error);
-    res
-      .status(500)
-      .json({ error: "Internal Server Error", details: error.message });
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      details: error.message,
+    });
   }
 });
 
-// 📸 Listar arquivos de screenshot
+/**
+ * Lists generated screenshot files.
+ *
+ * This is useful for debugging and for displaying available screenshots
+ * in the frontend when needed.
+ */
 app.get("/api/screenshots", (req, res) => {
   const screenshotDir = path.join(__dirname, "public/screenshots");
+
   if (!fs.existsSync(screenshotDir)) {
     return res.json({ files: [] });
   }
+
   const files = fs.readdirSync(screenshotDir);
-  res.json({ files });
+
+  return res.json({ files });
 });
 
-// 🗑️ Apagar todos os screenshots
+/**
+ * Deletes all generated screenshots.
+ *
+ * This keeps the screenshots folder clean between analyses.
+ */
 app.delete("/api/screenshots", (req, res) => {
   const screenshotDir = path.join(__dirname, "public/screenshots");
+
   if (fs.existsSync(screenshotDir)) {
     const files = fs.readdirSync(screenshotDir);
+
     files.forEach((file) => {
       fs.unlinkSync(path.join(screenshotDir, file));
     });
   }
-  res.json({ success: true });
+
+  return res.json({ success: true });
 });
 
-// 🔍 Rota do Aria Inspector (já existente)
+/**
+ * Registers the ARIA Inspector route.
+ *
+ * This keeps the inspector logic isolated in its own module.
+ */
 registerInspectRoute(app);
 
 app.listen(PORT, () => {
