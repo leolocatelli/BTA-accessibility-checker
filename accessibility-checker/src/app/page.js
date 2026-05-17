@@ -10,6 +10,7 @@ import CharacterCounter from "../components/CharacterCounter";
 import ResponsivePreviewTool from "../components/ResponsivePreviewTool";
 import AriaTabInspector from "@/components/AriaTabInspector";
 import UnifiedChecker from "../components/UnifiedChecker";
+import VideoTranscriptExtractor from "../components/VideoTranscriptExtractor";
 
 
 export default function Home() {
@@ -40,7 +41,8 @@ export default function Home() {
         {activeTab === "contrast" && <ColorContrastChecker />}
         {activeTab === "text-tools" && <CharacterCounter />}
         {activeTab === "inspector" && <AriaTabInspector />}
-        {activeTab === "unified" && <UnifiedChecker />}
+        {activeTab === "video-transcript" && <VideoTranscriptExtractor />}
+        {/* {activeTab === "unified" && <UnifiedChecker />} */}
         {/* {activeTab === "responsive-preview" && <ResponsivePreviewTool />} */}
 
       </div>

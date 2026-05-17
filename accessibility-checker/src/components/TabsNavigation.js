@@ -6,14 +6,15 @@ import {
   MonitorSmartphone,
   Eye,
   Layers,
+  Captions,
 } from "lucide-react";
 
 export default function TabsNavigation({ activeTab, setActiveTab }) {
   const baseBtn =
-    "flex items-center gap-2 px-5 py-3 text-base font-semibold transition whitespace-nowrap";
+    "flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap";
 
   return (
-    <div className="flex flex-wrap justify-center bg-white shadow-md rounded-lg">
+    <div className="flex w-full items-center justify-center overflow-x-auto rounded-lg bg-white shadow-md">
       {" "}
       {/* Accessibility Tab */}
       <button
@@ -74,6 +75,21 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <MonitorSmartphone className="w-5 h-5" />
         Responsive Preview
       </button> */}
+      {/* Video Transcript Tab */}
+      <button
+        className={`${baseBtn} ${
+          activeTab === "video-transcript"
+            ? "border-b-4 border-blue-500 text-blue-600 bg-blue-50"
+            : "text-gray-600 hover:text-blue-500"
+        }`}
+        onClick={() => setActiveTab("video-transcript")}
+      >
+        <Captions className="w-5 h-5" />
+        Video Transcript
+        <span className="ml-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+          NEW
+        </span>
+      </button>
       {/* ARIA & Tab Inspector Tab */}
       <button
         className={`${baseBtn} ${
