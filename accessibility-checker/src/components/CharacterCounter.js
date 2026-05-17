@@ -8,9 +8,12 @@ import {
   Redo2,
   Eraser,
   Wand2,
+  Link2,
 } from "lucide-react";
 
 import SeoFooterEditor from "./SeoFooterEditor";
+import { suggestContentLinkFromUrl } from "@/utils/seo-footer/seoFooterLinkConversion";
+
 import {
   buildSeoBlocks,
   generateSeoHtml,
@@ -35,9 +38,6 @@ export default function CharacterCounter({ cta_desc }) {
 
   const pushHistory = (val) => setHistory((h) => [...h.slice(-29), val]);
 
-  // -----------------------------
-  // Text transforms
-  // -----------------------------
   const removeDiacritics = (s) =>
     s.normalize("NFD").replace(/\p{Diacritic}/gu, "");
 
@@ -69,7 +69,7 @@ export default function CharacterCounter({ cta_desc }) {
       .map((w, i) =>
         i === 0 || i === tokens.length - 1 || !small.has(w)
           ? w.charAt(0).toUpperCase() + w.slice(1)
-          : w
+          : w,
       )
       .join(" ");
   };
@@ -81,9 +81,11 @@ export default function CharacterCounter({ cta_desc }) {
 
   const toSnake = (s) => wordsFromText(s).join("_");
   const toKebab = (s) => wordsFromText(s).join("-");
+
   const toCamel = (s) => {
     const w = wordsFromText(s);
     if (w.length === 0) return "";
+
     return (
       w[0] +
       w
@@ -145,6 +147,53 @@ export default function CharacterCounter({ cta_desc }) {
     }
   };
 
+  const convertTextToContentLinks = () => {
+    if (!text.trim()) {
+      announce("Paste one or more URLs first");
+      return;
+    }
+
+    pushHistory(text);
+    setFuture([]);
+
+    let convertedCount = 0;
+
+    const nextText = text
+      .split("\n")
+      .map((line) => {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) return line;
+
+        const suggestion = suggestContentLinkFromUrl(trimmedLine);
+
+        if (!suggestion.canConvert || suggestion.suggestedHref === trimmedLine) {
+          return line;
+        }
+
+        convertedCount += 1;
+
+        const leadingSpaces = line.match(/^\s*/)?.[0] || "";
+        const trailingSpaces = line.match(/\s*$/)?.[0] || "";
+
+        return `${leadingSpaces}${suggestion.suggestedHref}${trailingSpaces}`;
+      })
+      .join("\n");
+
+    setText(nextText);
+
+    if (convertedCount === 0) {
+      announce("No Brown Thomas or Arnotts URLs found");
+      return;
+    }
+
+    announce(
+      convertedCount === 1
+        ? "1 URL converted to content link function"
+        : `${convertedCount} URLs converted to content link functions`,
+    );
+  };
+
   const copyText = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -162,6 +211,7 @@ export default function CharacterCounter({ cta_desc }) {
 
   const undo = () => {
     if (history.length === 0) return;
+
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setFuture((f) => [text, ...f]);
@@ -171,6 +221,7 @@ export default function CharacterCounter({ cta_desc }) {
 
   const redo = () => {
     if (future.length === 0) return;
+
     const next = future[0];
     setFuture((f) => f.slice(1));
     pushHistory(text);
@@ -178,9 +229,6 @@ export default function CharacterCounter({ cta_desc }) {
     announce("Redone");
   };
 
-  // -----------------------------
-  // SEO mode controls
-  // -----------------------------
   const activateSeoMode = () => {
     const blocks = buildSeoBlocks(text);
 
@@ -202,9 +250,6 @@ export default function CharacterCounter({ cta_desc }) {
 
   const seoHtml = useMemo(() => generateSeoHtml(seoBlocks), [seoBlocks]);
 
-  // -----------------------------
-  // Stats
-  // -----------------------------
   const stats = useMemo(() => {
     const words = (text.trim().match(/\S+/g) || []).length;
     const chars = text.length;
@@ -212,15 +257,14 @@ export default function CharacterCounter({ cta_desc }) {
     const charsNoSpaces = text.replace(/\s/g, "").length;
     const bytes = new Blob([text]).size;
     const readTimeMin = Math.max(1, Math.round(words / 200));
+
     return { words, chars, lines, charsNoSpaces, bytes, readTimeMin };
   }, [text]);
 
-  // -----------------------------
-  // Hotkeys
-  // -----------------------------
   useEffect(() => {
     const onKey = (e) => {
       if (!(e.metaKey || e.ctrlKey)) return;
+
       const k = e.key.toLowerCase();
 
       if (k === "u") {
@@ -228,25 +272,30 @@ export default function CharacterCounter({ cta_desc }) {
         updateText(transforms.upper);
         announce("Converted to UPPERCASE");
       }
+
       if (k === "l") {
         e.preventDefault();
         updateText(transforms.lower);
         announce("Converted to lowercase");
       }
+
       if (k === "t") {
         e.preventDefault();
         updateText(transforms.titleSmart);
         announce("Converted to Title Case");
       }
+
       if (k === "k") {
         e.preventDefault();
         updateText(transforms.slug);
         announce("Converted to slug-case");
       }
+
       if (k === "z") {
         e.preventDefault();
         undo();
       }
+
       if (k === "y") {
         e.preventDefault();
         redo();
@@ -262,7 +311,8 @@ export default function CharacterCounter({ cta_desc }) {
 
   const seoBtnStyle =
     "flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm rounded-md shadow hover:bg-teal-700 transition";
-
+const contentLinkBtnStyle =
+  "flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 text-sm rounded-md hover:bg-blue-100 transition disabled:opacity-50";
   const ghostBtn =
     "flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 text-sm rounded-md hover:bg-blue-100 transition disabled:opacity-50";
 
@@ -289,7 +339,9 @@ export default function CharacterCounter({ cta_desc }) {
             <button
               onClick={() => updateText(transforms.sentence)}
               className={buttonStyle}
-              aria-label={cta_desc ? `${cta_desc}: sentence case` : "Sentence case"}
+              aria-label={
+                cta_desc ? `${cta_desc}: sentence case` : "Sentence case"
+              }
               title="Sentence case"
             >
               Sentence case
@@ -330,8 +382,6 @@ export default function CharacterCounter({ cta_desc }) {
             >
               slug-case
             </button>
-
-
           </div>
 
           <div className="flex flex-wrap gap-2 justify-center mb-6">
@@ -371,7 +421,8 @@ export default function CharacterCounter({ cta_desc }) {
               <Eraser className="w-4 h-4" />
               Spaces
             </button>
-                        <button
+
+            <button
               onClick={activateSeoMode}
               className={seoBtnStyle}
               aria-label="SEO Footer Tool"
@@ -441,6 +492,17 @@ export default function CharacterCounter({ cta_desc }) {
             >
               <Clipboard className="w-4 h-4" /> Copy Slug
             </button>
+
+            <button
+              onClick={convertTextToContentLinks}
+              className={contentLinkBtnStyle}
+              aria-label="Convert Brown Thomas or Arnotts URLs to content link function"
+              title="Convert Brown Thomas or Arnotts URLs to content link function"
+              disabled={!text.trim()}
+            >
+              <Link2 className="w-4 h-4" />
+              To Content Link Function
+            </button>
           </div>
 
           <div className="text-sm text-gray-700 text-center space-y-1">
@@ -448,10 +510,12 @@ export default function CharacterCounter({ cta_desc }) {
               <strong>Characters:</strong> {stats.chars} &nbsp;•&nbsp;
               <strong> Chars (no spaces):</strong> {stats.charsNoSpaces}
             </p>
+
             <p>
               <strong>Words:</strong> {stats.words} &nbsp;•&nbsp;
               <strong> Lines:</strong> {stats.lines}
             </p>
+
             <p>
               <strong>Size:</strong> {stats.bytes} bytes &nbsp;•&nbsp;
               <strong> ~{stats.readTimeMin} min</strong> read
