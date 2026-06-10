@@ -148,6 +148,7 @@ export default function SeoFooterEditor({
         block.id === id ? { ...block, type: nextType } : block,
       ),
     );
+
     onAnnounce?.(`Converted to ${nextType}`);
   };
 
@@ -171,12 +172,6 @@ export default function SeoFooterEditor({
   const removeBlock = (id) => {
     setSeoBlocks((prev) => prev.filter((block) => block.id !== id));
     onAnnounce?.("Block removed");
-  };
-
-  const syncParagraphHtmlFromDom = (blockId) => {
-    const el = paragraphRefs.current[blockId];
-    if (!el) return;
-    updateSeoBlock(blockId, el.innerHTML);
   };
 
   const normalizePastedClickUpHtml = (html) => {
@@ -537,9 +532,7 @@ export default function SeoFooterEditor({
     const cleanedRawValue = extractCgidFromContentLink(rawValue) || rawValue;
 
     const value =
-      cleanedRawValue ||
-      contentLinkCgid ||
-      extractValueFromHref(href, type);
+      cleanedRawValue || contentLinkCgid || extractValueFromHref(href, type);
 
     const selectedText = anchor.textContent || "";
 
@@ -586,6 +579,61 @@ export default function SeoFooterEditor({
       suggestedHref: "",
       linkText: "",
     });
+  };
+
+  const convertAllLinksInBlock = (blockId) => {
+    const currentBlock = seoBlocks.find((block) => block.id === blockId);
+    if (!currentBlock) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = currentBlock.content;
+
+    const linksToConvert = Array.from(
+      wrapper.querySelectorAll('a[data-needs-conversion="true"]'),
+    );
+
+    if (!linksToConvert.length) {
+      onAnnounce?.("No links to convert");
+      return;
+    }
+
+    linksToConvert.forEach((link) => {
+      const originalUrl =
+        link.getAttribute("data-original-url") ||
+        link.getAttribute("href") ||
+        "";
+
+      const suggestion = suggestContentLinkFromUrl(originalUrl);
+
+      if (!suggestion.canConvert || !suggestion.suggestedHref) return;
+
+      const linkText = link.textContent || "";
+      const categoryId =
+        extractCgidFromContentLink(suggestion.suggestedHref) ||
+        extractValueFromHref(originalUrl, "category");
+
+      link.setAttribute("href", suggestion.suggestedHref);
+      link.setAttribute("class", "seo-link-underline");
+      link.setAttribute("data-needs-conversion", "false");
+      link.setAttribute("data-link-type", "category");
+      link.setAttribute("data-link-value", categoryId);
+      link.setAttribute(
+        "aria-label",
+        suggestAriaLabel("category", linkText, categoryId),
+      );
+
+      link.removeAttribute("data-original-url");
+      link.removeAttribute("data-suggested-href");
+      link.removeAttribute("data-conversion-source");
+    });
+
+    updateSeoBlock(blockId, wrapper.innerHTML);
+
+    onAnnounce?.(
+      linksToConvert.length === 1
+        ? "1 link converted"
+        : `${linksToConvert.length} links converted`,
+    );
   };
 
   const confirmContentLinkConversion = () => {
@@ -1008,6 +1056,7 @@ export default function SeoFooterEditor({
               }}
               onMoveUp={() => moveBlock(index, "up")}
               onMoveDown={() => moveBlock(index, "down")}
+              onConvertAllLinks={() => convertAllLinksInBlock(block.id)}
               onConvert={() =>
                 convertBlockType(
                   block.id,

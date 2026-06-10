@@ -228,15 +228,37 @@ export const detectSeoFromHtml = (input = "") => {
 
   return blocks;
 };
+export const buildSeoBlocks = (input = "", richHtml = "") => {
+  const plainInput = input || "";
+  const htmlInput = richHtml || "";
 
-export const buildSeoBlocks = (input = "") => {
-  if (!input.trim()) return [];
+  if (!plainInput.trim() && !htmlInput.trim()) return [];
 
-  if (isLikelyHtml(input) || isLikelySeoFooterHtml(input)) {
-    return detectSeoFromHtml(input);
+  // 1. First priority: HTML pasted directly into Text Tool
+  // Example: existing SEO footer code from the website
+  if (
+    plainInput.trim() &&
+    (isLikelyHtml(plainInput) || isLikelySeoFooterHtml(plainInput))
+  ) {
+    const htmlBlocks = detectSeoFromHtml(plainInput);
+
+    if (htmlBlocks.length) {
+      return htmlBlocks;
+    }
   }
 
-  return detectSeoFromPlainText(input);
+  // 2. Second priority: rich HTML captured from clipboard
+  // Example: ClickUp rich paste
+  if (htmlInput.trim() && isLikelyHtml(htmlInput)) {
+    const richBlocks = detectSeoFromHtml(htmlInput);
+
+    if (richBlocks.length) {
+      return richBlocks;
+    }
+  }
+
+  // 3. Fallback: plain text detection
+  return detectSeoFromPlainText(plainInput);
 };
 
 export const generateSeoHtml = (blocks = []) => {

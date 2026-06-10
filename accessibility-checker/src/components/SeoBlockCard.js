@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowUp, ArrowDown, Repeat, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { ArrowUp, ArrowDown, Repeat, Trash2, Wand2 } from "lucide-react";
 
 export default function SeoBlockCard({
   block,
@@ -12,6 +13,7 @@ export default function SeoBlockCard({
   onConvert,
   onRemove,
   onTitleChange,
+  onConvertAllLinks,
   onParagraphInput,
   onParagraphMouseUp,
   onParagraphClick,
@@ -20,6 +22,33 @@ export default function SeoBlockCard({
   onParagraphMouseOut,
   onParagraphPaste,
 }) {
+  const localParagraphRef = useRef(null);
+  const lastHtmlRef = useRef("");
+
+  useEffect(() => {
+    if (block.type !== "paragraph") return;
+
+    const el = localParagraphRef.current;
+    if (!el) return;
+
+    const nextHtml = block.content || "";
+
+    if (el.innerHTML !== nextHtml) {
+      el.innerHTML = nextHtml;
+      lastHtmlRef.current = nextHtml;
+    }
+  }, [block.id, block.type, block.content]);
+
+  const setParagraphRefs = (el) => {
+    localParagraphRef.current = el;
+    paragraphRef?.(el);
+  };
+
+  const handleParagraphInput = (event) => {
+    lastHtmlRef.current = event.currentTarget.innerHTML;
+    onParagraphInput?.(event);
+  };
+
   const compactIconBtn =
     "inline-flex items-center justify-center w-8 h-8 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-100 transition disabled:opacity-50";
 
@@ -28,6 +57,10 @@ export default function SeoBlockCard({
 
   const compactDangerBtn =
     "inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-red-300 text-red-600 text-xs rounded-md hover:bg-red-50 transition";
+
+  const hasConvertibleLinks =
+    block.type === "paragraph" &&
+    block.content?.includes('data-needs-conversion="true"');
 
   return (
     <div
@@ -69,6 +102,18 @@ export default function SeoBlockCard({
             <ArrowDown className="w-3.5 h-3.5" />
           </button>
 
+          {hasConvertibleLinks && (
+            <button
+              onClick={onConvertAllLinks}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-orange-400 text-orange-700 bg-orange-50 text-xs rounded-md hover:bg-orange-100 transition"
+              title="Convert all suggested links"
+              type="button"
+            >
+              <Wand2 className="w-3.5 h-3.5" />
+              Convert All Links
+            </button>
+          )}
+
           <button
             onClick={onConvert}
             className={compactActionBtn}
@@ -105,19 +150,19 @@ export default function SeoBlockCard({
         />
       ) : (
         <div
-          ref={paragraphRef}
+          ref={setParagraphRefs}
           data-seo-paragraph="true"
           contentEditable
           suppressContentEditableWarning
-          onInput={onParagraphInput}
+          onInput={handleParagraphInput}
           onPaste={onParagraphPaste}
           onMouseUp={onParagraphMouseUp}
+          onDoubleClick={onParagraphMouseUp}
           onMouseDown={onParagraphClick}
           onMouseOver={onParagraphMouseOver}
           onMouseMove={onParagraphMouseMove}
           onMouseOut={onParagraphMouseOut}
           className="w-full min-h-[95px] p-3 border rounded-md text-base outline-none whitespace-pre-wrap leading-7"
-          dangerouslySetInnerHTML={{ __html: block.content }}
         />
       )}
     </div>

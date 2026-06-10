@@ -14,13 +14,11 @@ import {
 import SeoFooterEditor from "./SeoFooterEditor";
 import { suggestContentLinkFromUrl } from "@/utils/seo-footer/seoFooterLinkConversion";
 
-import {
-  buildSeoBlocks,
-  generateSeoHtml,
-} from "./seoFooterUtils";
+import { buildSeoBlocks, generateSeoHtml, createBlock } from "./seoFooterUtils";
 
 export default function CharacterCounter({ cta_desc }) {
   const [text, setText] = useState("");
+  const [richHtml, setRichHtml] = useState("");
   const [copied, setCopied] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [history, setHistory] = useState([]);
@@ -42,7 +40,9 @@ export default function CharacterCounter({ cta_desc }) {
     s.normalize("NFD").replace(/\p{Diacritic}/gu, "");
 
   const wordsFromText = (s) =>
-    removeDiacritics(s).toLowerCase().match(/[a-z0-9]+/g) || [];
+    removeDiacritics(s)
+      .toLowerCase()
+      .match(/[a-z0-9]+/g) || [];
 
   const toTitleSmart = (s) => {
     const small = new Set([
@@ -113,7 +113,8 @@ export default function CharacterCounter({ cta_desc }) {
   };
 
   const updateText = (transformFn) => {
-    const textarea = textareaRef.current || document.getElementById("text-area");
+    const textarea =
+      textareaRef.current || document.getElementById("text-area");
     if (!textarea) return;
 
     const start = textarea.selectionStart ?? 0;
@@ -167,7 +168,10 @@ export default function CharacterCounter({ cta_desc }) {
 
         const suggestion = suggestContentLinkFromUrl(trimmedLine);
 
-        if (!suggestion.canConvert || suggestion.suggestedHref === trimmedLine) {
+        if (
+          !suggestion.canConvert ||
+          suggestion.suggestedHref === trimmedLine
+        ) {
           return line;
         }
 
@@ -229,13 +233,21 @@ export default function CharacterCounter({ cta_desc }) {
     announce("Redone");
   };
 
-  const activateSeoMode = () => {
-    const blocks = buildSeoBlocks(text);
+  const handlePaste = (e) => {
+    const html = e.clipboardData?.getData("text/html") || "";
+    const plain = e.clipboardData?.getData("text/plain") || "";
 
-    if (!blocks.length) {
-      announce("Paste some text first");
-      return;
+
+
+    if (html && plain) {
+      setRichHtml(html);
     }
+  };
+
+  const activateSeoMode = () => {
+    const blocks = text.trim()
+      ? buildSeoBlocks(text, richHtml)
+      : [createBlock("title", ""), createBlock("paragraph", "")];
 
     setSeoBlocks(blocks);
     setSeoMode(true);
@@ -311,8 +323,8 @@ export default function CharacterCounter({ cta_desc }) {
 
   const seoBtnStyle =
     "flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm rounded-md shadow hover:bg-teal-700 transition";
-const contentLinkBtnStyle =
-  "flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 text-sm rounded-md hover:bg-blue-100 transition disabled:opacity-50";
+  const contentLinkBtnStyle =
+    "flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 text-sm rounded-md hover:bg-blue-100 transition disabled:opacity-50";
   const ghostBtn =
     "flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 text-sm rounded-md hover:bg-blue-100 transition disabled:opacity-50";
 
@@ -329,7 +341,10 @@ const contentLinkBtnStyle =
             ref={textareaRef}
             rows={8}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+            }}
+            onPaste={handlePaste}
             className="w-full p-3 border rounded text-sm shadow mb-4 outline-none"
             placeholder="Type or paste your text here..."
             aria-label={cta_desc ? `${cta_desc}: text editor` : "Text editor"}
