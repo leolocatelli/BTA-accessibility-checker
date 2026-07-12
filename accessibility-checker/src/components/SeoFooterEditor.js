@@ -26,6 +26,11 @@ export default function SeoFooterEditor({
   seoBlocks,
   setSeoBlocks,
   seoHtml,
+  selectedTemplate,
+  setSelectedTemplate,
+  templateSettings,
+  setTemplateSettings,
+  detectedTemplateLabel,
   onBack,
   onAnnounce,
 }) {
@@ -888,7 +893,7 @@ export default function SeoFooterEditor({
       <div className="flex flex-wrap gap-3 justify-between items-start">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">
-            SEO Footer Tool
+            SEO Builder Tool
           </h2>
           <p className="text-sm text-gray-600 mt-1">
             Select text inside paragraph blocks to insert links. Hover linked
@@ -923,8 +928,10 @@ export default function SeoFooterEditor({
           >
             Back
           </button>
+          
         </div>
       </div>
+      
 
       <SeoLinkTypeModal
         isOpen={linkTypeModalOpen}
@@ -1078,8 +1085,14 @@ export default function SeoFooterEditor({
           ))}
         </div>
       </div>
-
-      <SeoGeneratedHtml seoHtml={seoHtml} />
+      <SeoGeneratedHtml
+  seoBlocks={renderedBlocks}
+  seoHtml={seoHtml}
+  selectedTemplate={selectedTemplate}
+  setSelectedTemplate={setSelectedTemplate}
+  templateSettings={templateSettings}
+  setTemplateSettings={setTemplateSettings}
+/>
     </div>
   );
 }

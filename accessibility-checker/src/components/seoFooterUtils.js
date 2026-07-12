@@ -1,3 +1,11 @@
+import {
+  DEFAULT_FAQ_HEADING,
+  FAQ_SCRIPT,
+  FAQ_STYLE,
+  SEO_CONTENT_TEMPLATE_TYPES,
+} from "./seoContentTemplates";
+
+
 export const escapeHtml = (str = "") =>
   str
     .replace(/&/g, "&amp;")
@@ -261,6 +269,135 @@ export const buildSeoBlocks = (input = "", richHtml = "") => {
   return detectSeoFromPlainText(plainInput);
 };
 
+
+export const buildSeoDocument = (input = "", richHtml = "") => {
+  const plainInput = input || "";
+  const htmlInput = richHtml || "";
+
+  const sourceHtml =
+    plainInput.trim() && isLikelyHtml(plainInput)
+      ? plainInput
+      : htmlInput.trim() && isLikelyHtml(htmlInput)
+        ? htmlInput
+        : "";
+
+  if (sourceHtml && isLikelyFaqHtml(sourceHtml)) {
+    const faqDocument = detectFaqFromHtml(sourceHtml);
+
+    if (faqDocument.blocks.length > 0) {
+      return {
+        blocks: faqDocument.blocks,
+        templateType: SEO_CONTENT_TEMPLATE_TYPES.FAQ,
+        templateSettings: {
+          heading: faqDocument.heading,
+        },
+      };
+    }
+  }
+
+  const blocks = buildSeoBlocks(plainInput, htmlInput);
+
+  return {
+    blocks,
+    templateType: SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER,
+    templateSettings: {},
+  };
+};
+
+
+export const isLikelyFaqHtml = (input = "") =>
+  /class=["'][^"']*\baccordion\b[^"']*["']|class=["'][^"']*\baccordion__panel\b[^"']*["']|class=["'][^"']*\btab-label\b[^"']*["']/i.test(
+    input,
+  ) &&
+  /<details\b/i.test(input) &&
+  /<summary\b/i.test(input);
+
+export const detectFaqFromHtml = (input = "") => {
+  if (typeof window === "undefined") {
+    return {
+      blocks: [],
+      heading: "",
+    };
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(input, "text/html");
+
+  const faqSection =
+    doc.querySelector("section.sections-content") ||
+    doc.querySelector("section[aria-labelledby]") ||
+    doc.querySelector("section");
+
+  const accordion =
+    faqSection?.querySelector(".accordion") ||
+    doc.querySelector(".accordion");
+
+  if (!accordion) {
+    return {
+      blocks: [],
+      heading: "",
+    };
+  }
+
+  const headingElement =
+    faqSection?.querySelector("#faq-heading") ||
+    faqSection?.querySelector(":scope > h1, :scope > h2, :scope > h3") ||
+    null;
+
+  const heading = (headingElement?.textContent || "").trim();
+
+  const blocks = [];
+
+  accordion.querySelectorAll("details").forEach((details) => {
+    const summary = details.querySelector("summary");
+
+    const questionElement =
+      summary?.querySelector("h1, h2, h3, h4, h5, h6") || summary;
+
+    const question = (questionElement?.textContent || "").trim();
+
+    if (!question) return;
+
+    blocks.push(createBlock("title", escapeHtml(question)));
+
+    const panel =
+      details.querySelector(".accordion__panel") ||
+      Array.from(details.children).find(
+        (child) => child.tagName?.toLowerCase() !== "summary",
+      );
+
+    if (!panel) {
+      blocks.push(createBlock("paragraph", ""));
+      return;
+    }
+
+    const paragraphs = Array.from(panel.querySelectorAll(":scope > p"));
+
+    if (paragraphs.length > 0) {
+      paragraphs.forEach((paragraph) => {
+        blocks.push(
+          createBlock("paragraph", paragraph.innerHTML.trim()),
+        );
+      });
+
+      return;
+    }
+
+    const fallbackContent = panel.innerHTML.trim();
+
+    if (fallbackContent) {
+      blocks.push(createBlock("paragraph", fallbackContent));
+    } else {
+      blocks.push(createBlock("paragraph", ""));
+    }
+  });
+
+  return {
+    blocks,
+    heading,
+  };
+};
+
 export const generateSeoHtml = (blocks = []) => {
   if (!blocks.length) return "";
 
@@ -284,4 +421,118 @@ export const generateSeoHtml = (blocks = []) => {
   ];
 
   return html.join("\n");
+};
+
+const groupBlocksIntoFaqItems = (blocks = []) => {
+  const items = [];
+  let currentItem = null;
+
+  blocks.forEach((block) => {
+    if (block.type === "title") {
+      const title = decodeHtml(block.content || "").trim();
+
+      if (!title) {
+        currentItem = null;
+        return;
+      }
+
+      currentItem = {
+        title,
+        paragraphs: [],
+      };
+
+      items.push(currentItem);
+      return;
+    }
+
+    if (block.type === "paragraph" && currentItem) {
+      const paragraph = sanitizeParagraphHtml(
+        decodeHtml(block.content || ""),
+      ).trim();
+
+      if (paragraph) {
+        currentItem.paragraphs.push(paragraph);
+      }
+    }
+  });
+
+  return items;
+};
+
+export const generateFaqHtml = (
+  blocks = [],
+  settings = {},
+) => {
+  if (!blocks.length) return "";
+
+  const faqItems = groupBlocksIntoFaqItems(blocks);
+
+  if (!faqItems.length) return "";
+
+  const heading =
+    typeof settings.heading === "string"
+      ? settings.heading.trim()
+      : DEFAULT_FAQ_HEADING;
+
+  const faqItemsHtml = faqItems
+    .map((item) => {
+      const paragraphsHtml =
+        item.paragraphs.length > 0
+          ? item.paragraphs
+              .map((paragraph) => `        <p>${paragraph}</p>`)
+              .join("\n")
+          : "        <p></p>";
+
+      return [
+        `    <details class="tab">`,
+        `      <summary class="tab-label"><h5>${escapeHtml(item.title)}</h5></summary>`,
+        `      <div class="accordion__panel">`,
+        paragraphsHtml,
+        `      </div>`,
+        `    </details>`,
+      ].join("\n");
+    })
+    .join("\n");
+
+  const sectionAttributes = heading
+    ? ` class="sections-content" aria-labelledby="faq-heading"`
+    : ` class="sections-content"`;
+
+  const sectionLines = [
+    `<section${sectionAttributes}>`,
+  ];
+
+  if (heading) {
+    sectionLines.push(
+      `  <h2 id="faq-heading" style="margin-bottom:60px;text-align:center;text-transform:uppercase;">`,
+      `    ${escapeHtml(heading)}`,
+      `  </h2>`,
+    );
+  }
+
+  sectionLines.push(
+    `  <div class="accordion">`,
+    faqItemsHtml,
+    `  </div>`,
+    `</section>`,
+  );
+
+  const sectionHtml = sectionLines.join("\n");
+
+  return [FAQ_STYLE, sectionHtml, FAQ_SCRIPT].join("\n\n");
+};
+
+export const generateSeoContentHtml = (
+  blocks = [],
+  templateType = SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER,
+  templateSettings = {},
+) => {
+  switch (templateType) {
+    case SEO_CONTENT_TEMPLATE_TYPES.FAQ:
+      return generateFaqHtml(blocks, templateSettings);
+
+    case SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER:
+    default:
+      return generateSeoHtml(blocks);
+  }
 };

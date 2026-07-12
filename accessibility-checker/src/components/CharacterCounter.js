@@ -14,7 +14,16 @@ import {
 import SeoFooterEditor from "./SeoFooterEditor";
 import { suggestContentLinkFromUrl } from "@/utils/seo-footer/seoFooterLinkConversion";
 
-import { buildSeoBlocks, generateSeoHtml, createBlock } from "./seoFooterUtils";
+import {
+  buildSeoDocument,
+  generateSeoHtml,
+  createBlock,
+} from "./seoFooterUtils";
+
+import {
+  DEFAULT_FAQ_SETTINGS,
+  SEO_CONTENT_TEMPLATE_TYPES,
+} from "./seoContentTemplates";
 
 export default function CharacterCounter({ cta_desc }) {
   const [text, setText] = useState("");
@@ -26,6 +35,14 @@ export default function CharacterCounter({ cta_desc }) {
 
   const [seoMode, setSeoMode] = useState(false);
   const [seoBlocks, setSeoBlocks] = useState([]);
+  const [detectedTemplateLabel, setDetectedTemplateLabel] = useState("");
+  const [seoTemplate, setSeoTemplate] = useState(
+    SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER,
+  );
+
+  const [seoTemplateSettings, setSeoTemplateSettings] = useState({
+    ...DEFAULT_FAQ_SETTINGS,
+  });
 
   const textareaRef = useRef(null);
 
@@ -237,26 +254,57 @@ export default function CharacterCounter({ cta_desc }) {
     const html = e.clipboardData?.getData("text/html") || "";
     const plain = e.clipboardData?.getData("text/plain") || "";
 
-
-
     if (html && plain) {
       setRichHtml(html);
     }
   };
 
   const activateSeoMode = () => {
-    const blocks = text.trim()
-      ? buildSeoBlocks(text, richHtml)
-      : [createBlock("title", ""), createBlock("paragraph", "")];
+    if (!text.trim()) {
+      setSeoBlocks([createBlock("title", ""), createBlock("paragraph", "")]);
 
-    setSeoBlocks(blocks);
+      setSeoTemplate(SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER);
+
+      setSeoTemplateSettings({
+        ...DEFAULT_FAQ_SETTINGS,
+      });
+
+      setSeoMode(true);
+      announce("SEO Builder Tool activated");
+      return;
+    }
+
+    const document = buildSeoDocument(text, richHtml);
+
+    setSeoBlocks(document.blocks);
+    setSeoTemplate(document.templateType);
+
+    setSeoTemplateSettings({
+      ...DEFAULT_FAQ_SETTINGS,
+      ...document.templateSettings,
+    });
+
+    const detectedLabel =
+      document.templateType === SEO_CONTENT_TEMPLATE_TYPES.FAQ
+        ? "FAQ"
+        : "SEO Footer";
+
+    setDetectedTemplateLabel(detectedLabel);
+
     setSeoMode(true);
-    announce("SEO Footer Tool activated");
+
+    announce(
+      document.templateType === SEO_CONTENT_TEMPLATE_TYPES.FAQ
+        ? "FAQ detected and opened"
+        : "SEO Builder Tool activated",
+    );
   };
 
   const exitSeoMode = () => {
     setSeoMode(false);
     setSeoBlocks([]);
+    setDetectedTemplateLabel("");
+
     announce("SEO mode closed");
   };
 
@@ -440,11 +488,11 @@ export default function CharacterCounter({ cta_desc }) {
             <button
               onClick={activateSeoMode}
               className={seoBtnStyle}
-              aria-label="SEO Footer Tool"
-              title="SEO Footer Tool"
+              aria-label="SEO Builder Tool"
+              title="SEO Builder Tool"
             >
               <Wand2 className="w-4 h-4" />
-              SEO Footer Tool
+              SEO Builder Tool
             </button>
           </div>
 
@@ -544,6 +592,11 @@ export default function CharacterCounter({ cta_desc }) {
           seoBlocks={seoBlocks}
           setSeoBlocks={setSeoBlocks}
           seoHtml={seoHtml}
+          selectedTemplate={seoTemplate}
+          setSelectedTemplate={setSeoTemplate}
+          templateSettings={seoTemplateSettings}
+          setTemplateSettings={setSeoTemplateSettings}
+          detectedTemplateLabel={detectedTemplateLabel}
           onBack={exitSeoMode}
           onAnnounce={announce}
         />
