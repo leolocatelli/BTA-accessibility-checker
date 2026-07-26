@@ -1,24 +1,53 @@
 import catUrlMapper from "@/data/templates/catUrlMapper.json";
 
-// catUrlMapper is keyed { brand: { normalizedPath: catId } } — paths are
-// already lowercased with leading/trailing slashes stripped, matching the
-// normalization here.
 function normalizePath(path) {
   if (!path) return "";
-  return path.toLowerCase().replace(/^\/+|\/+$/g, "");
+
+  return path
+    .toLowerCase()
+    .replace(/^\/+|\/+$/g, "");
 }
 
 export default function getCatIdFromUrl(url, brand) {
   if (!url) return null;
+
   const brandMap = catUrlMapper[brand?.toLowerCase()];
   if (!brandMap) return null;
 
-  let pathname;
+  let pathname = "";
+  let search = "";
+
   try {
-    pathname = new URL(url).pathname;
+    const parsedUrl = new URL(url);
+
+    pathname = parsedUrl.pathname;
+    search = parsedUrl.search;
   } catch {
-    pathname = url;
+    const [rawPathname, rawQuery = ""] = String(url).split("?");
+
+    pathname = rawPathname;
+    search = rawQuery ? `?${rawQuery}` : "";
   }
 
-  return brandMap[normalizePath(pathname)] ?? null;
+  const normalizedPath = normalizePath(pathname);
+
+  const normalizedPathWithQuery = search
+    ? `${normalizedPath}/${search.toLowerCase()}`
+    : normalizedPath;
+
+  const mappedWithQuery = brandMap[normalizedPathWithQuery];
+
+  if (mappedWithQuery) {
+    return mappedWithQuery;
+  }
+
+  const mappedFromPath = brandMap[normalizedPath];
+
+  if (mappedFromPath) {
+    return mappedFromPath;
+  }
+
+  const queryCatId = new URLSearchParams(search).get("cgid");
+
+  return queryCatId || null;
 }
