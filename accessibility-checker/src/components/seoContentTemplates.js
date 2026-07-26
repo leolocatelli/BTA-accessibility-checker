@@ -22,6 +22,7 @@ export const DEFAULT_FAQ_HEADING = "Frequently Asked Questions";
 
 export const DEFAULT_FAQ_SETTINGS = {
   heading: DEFAULT_FAQ_HEADING,
+  faqBrand: "bt",
 };
 
 export const FAQ_STYLE = `<style>
@@ -64,6 +65,58 @@ export const FAQ_STYLE = `<style>
   }
 
   .tab[open] > .tab-label::after {
+    transform: rotate(0deg);
+  }
+
+  .accordion__panel {
+    height: 0;
+    overflow: hidden;
+    padding: 0 1.25rem;
+    transition: height 0.35s ease, padding 0.35s ease;
+  }
+</style>`;
+
+export const FAQ_STYLE_ARN = `<style>
+  .accordion__panel p {
+    text-align: left;
+  }
+
+  .tab {
+    margin: 10px 0;
+  }
+
+  .arn-tab-label {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    padding: 1rem 2.5rem 1rem 1.25rem;
+    background: none;
+    font-size: 14px;
+    list-style: none;
+  }
+
+  .arn-tab-label::-webkit-details-marker {
+    display: none;
+  }
+
+  .arn-tab-label::before,
+  .arn-tab-label::after {
+    color: #0000e4;
+    content: '';
+    width: .75em;
+    height: 0;
+    border-bottom: 1px solid;
+    position: absolute;
+    top: calc(50% - 1px);
+    right: 1.25rem;
+  }
+
+  .arn-tab-label::after {
+    transform: rotate(90deg);
+    transition: transform 200ms;
+  }
+
+  .tab[open] > .arn-tab-label::after {
     transform: rotate(0deg);
   }
 

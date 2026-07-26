@@ -2,9 +2,9 @@ import {
   DEFAULT_FAQ_HEADING,
   FAQ_SCRIPT,
   FAQ_STYLE,
+  FAQ_STYLE_ARN,
   SEO_CONTENT_TEMPLATE_TYPES,
 } from "./seoContentTemplates";
-
 
 export const escapeHtml = (str = "") =>
   str
@@ -269,7 +269,6 @@ export const buildSeoBlocks = (input = "", richHtml = "") => {
   return detectSeoFromPlainText(plainInput);
 };
 
-
 export const buildSeoDocument = (input = "", richHtml = "") => {
   const plainInput = input || "";
   const htmlInput = richHtml || "";
@@ -290,6 +289,7 @@ export const buildSeoDocument = (input = "", richHtml = "") => {
         templateType: SEO_CONTENT_TEMPLATE_TYPES.FAQ,
         templateSettings: {
           heading: faqDocument.heading,
+          faqBrand: faqDocument.faqBrand || "bt",
         },
       };
     }
@@ -303,7 +303,6 @@ export const buildSeoDocument = (input = "", richHtml = "") => {
     templateSettings: {},
   };
 };
-
 
 export const isLikelyFaqHtml = (input = "") =>
   /class=["'][^"']*\baccordion\b[^"']*["']|class=["'][^"']*\baccordion__panel\b[^"']*["']|class=["'][^"']*\btab-label\b[^"']*["']/i.test(
@@ -329,8 +328,7 @@ export const detectFaqFromHtml = (input = "") => {
     doc.querySelector("section");
 
   const accordion =
-    faqSection?.querySelector(".accordion") ||
-    doc.querySelector(".accordion");
+    faqSection?.querySelector(".accordion") || doc.querySelector(".accordion");
 
   if (!accordion) {
     return {
@@ -345,6 +343,8 @@ export const detectFaqFromHtml = (input = "") => {
     null;
 
   const heading = (headingElement?.textContent || "").trim();
+
+  const faqBrand = doc.querySelector(".arn-tab-label") ? "arn" : "bt";
 
   const blocks = [];
 
@@ -375,9 +375,7 @@ export const detectFaqFromHtml = (input = "") => {
 
     if (paragraphs.length > 0) {
       paragraphs.forEach((paragraph) => {
-        blocks.push(
-          createBlock("paragraph", paragraph.innerHTML.trim()),
-        );
+        blocks.push(createBlock("paragraph", paragraph.innerHTML.trim()));
       });
 
       return;
@@ -395,6 +393,7 @@ export const detectFaqFromHtml = (input = "") => {
   return {
     blocks,
     heading,
+    faqBrand,
   };
 };
 
@@ -459,10 +458,7 @@ const groupBlocksIntoFaqItems = (blocks = []) => {
   return items;
 };
 
-export const generateFaqHtml = (
-  blocks = [],
-  settings = {},
-) => {
+export const generateFaqHtml = (blocks = [], settings = {}) => {
   if (!blocks.length) return "";
 
   const faqItems = groupBlocksIntoFaqItems(blocks);
@@ -473,6 +469,12 @@ export const generateFaqHtml = (
     typeof settings.heading === "string"
       ? settings.heading.trim()
       : DEFAULT_FAQ_HEADING;
+
+  const isArnotts = settings.faqBrand === "arn";
+
+  const faqStyle = isArnotts ? FAQ_STYLE_ARN : FAQ_STYLE;
+
+  const summaryClass = isArnotts ? "arn-tab-label" : "tab-label";
 
   const faqItemsHtml = faqItems
     .map((item) => {
@@ -485,7 +487,7 @@ export const generateFaqHtml = (
 
       return [
         `    <details class="tab">`,
-        `      <summary class="tab-label"><h5>${escapeHtml(item.title)}</h5></summary>`,
+        `      <summary class="${summaryClass}"><h5>${escapeHtml(item.title)}</h5></summary>`,
         `      <div class="accordion__panel">`,
         paragraphsHtml,
         `      </div>`,
@@ -498,9 +500,7 @@ export const generateFaqHtml = (
     ? ` class="sections-content" aria-labelledby="faq-heading"`
     : ` class="sections-content"`;
 
-  const sectionLines = [
-    `<section${sectionAttributes}>`,
-  ];
+  const sectionLines = [`<section${sectionAttributes}>`];
 
   if (heading) {
     sectionLines.push(
@@ -519,7 +519,7 @@ export const generateFaqHtml = (
 
   const sectionHtml = sectionLines.join("\n");
 
-  return [FAQ_STYLE, sectionHtml, FAQ_SCRIPT].join("\n\n");
+  return [faqStyle, sectionHtml, FAQ_SCRIPT].join("\n\n");
 };
 
 export const generateSeoContentHtml = (
