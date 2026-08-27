@@ -68,6 +68,12 @@ export const FAQ_STYLE = `<style>
     transform: rotate(0deg);
   }
 
+@media screen and (max-width: 800px) {
+  .tab-label h5 {
+    font-size: 1.4rem;
+  }
+}
+
   .accordion__panel {
     height: 0;
     overflow: hidden;
@@ -119,6 +125,12 @@ export const FAQ_STYLE_ARN = `<style>
   .tab[open] > .arn-tab-label::after {
     transform: rotate(0deg);
   }
+
+  @media screen and (max-width: 800px) {
+  .arn-tab-label h5 {
+    font-size: 1.4rem;
+  }
+}
 
   .accordion__panel {
     height: 0;

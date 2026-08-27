@@ -48,7 +48,7 @@ export default function SeoGeneratedHtml({
     }
 
     return "";
- }, [seoBlocks, seoHtml, selectedTemplate, templateSettings]);
+  }, [seoBlocks, seoHtml, selectedTemplate, templateSettings]);
 
   const selectTemplate = (templateId) => {
     setSelectedTemplate(templateId);
@@ -138,65 +138,63 @@ export default function SeoGeneratedHtml({
 
       {selectedTemplate === SEO_CONTENT_TEMPLATE_TYPES.FAQ && (
         <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4">
-<div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-  <div>
-    <h4 className="text-sm font-semibold text-gray-900">
-      FAQ Settings
-    </h4>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900">
+                FAQ Settings
+              </h4>
 
-    <p className="mt-1 text-xs text-gray-500">
-      Leave the heading empty to remove it from the generated HTML.
-    </p>
-  </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Leave the heading empty to remove it from the generated HTML.
+              </p>
+            </div>
 
-  <div
-    className="inline-flex gap-1 rounded-md border border-gray-300 bg-gray-50 p-1"
-    role="radiogroup"
-    aria-label="FAQ brand"
-  >
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selectedFaqBrand === "bt"}
-      title="Brown Thomas"
-      onClick={() =>
-        setTemplateSettings((currentSettings) => ({
-          ...currentSettings,
-          faqBrand: "bt",
-        }))
-      }
-      className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
-        selectedFaqBrand === "bt"
-          ? "bg-teal-700 text-white shadow-sm"
-          : "text-gray-600 hover:bg-white"
-      }`}
-    >
-      BT
-    </button>
+            <div
+              className="inline-flex gap-1 rounded-md border border-gray-300 bg-gray-50 p-1"
+              role="radiogroup"
+              aria-label="FAQ brand"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selectedFaqBrand === "bt"}
+                title="Brown Thomas"
+                onClick={() =>
+                  setTemplateSettings((currentSettings) => ({
+                    ...currentSettings,
+                    faqBrand: "bt",
+                  }))
+                }
+                className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                  selectedFaqBrand === "bt"
+                    ? "bg-teal-700 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-white"
+                }`}
+              >
+                BT
+              </button>
 
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selectedFaqBrand === "arn"}
-      title="Arnotts"
-      onClick={() =>
-        setTemplateSettings((currentSettings) => ({
-          ...currentSettings,
-          faqBrand: "arn",
-        }))
-      }
-      className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
-        selectedFaqBrand === "arn"
-          ? "bg-teal-700 text-white shadow-sm"
-          : "text-gray-600 hover:bg-white"
-      }`}
-    >
-      ARN
-    </button>
-  </div>
-</div>
-
-
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selectedFaqBrand === "arn"}
+                title="Arnotts"
+                onClick={() =>
+                  setTemplateSettings((currentSettings) => ({
+                    ...currentSettings,
+                    faqBrand: "arn",
+                  }))
+                }
+                className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                  selectedFaqBrand === "arn"
+                    ? "bg-teal-700 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-white"
+                }`}
+              >
+                ARN
+              </button>
+            </div>
+          </div>
 
           <label
             htmlFor="faq-heading"
