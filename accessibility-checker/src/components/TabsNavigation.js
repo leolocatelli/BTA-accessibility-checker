@@ -7,11 +7,12 @@ import {
   Eye,
   Layers,
   Captions,
+  Wand2,
 } from "lucide-react";
 
 export default function TabsNavigation({ activeTab, setActiveTab }) {
-  const baseBtn =
-    "flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap";
+const baseBtn =
+  "flex items-center gap-1 px-2 py-2.5 text-[13px] font-semibold transition whitespace-nowrap";
 
   return (
     <div className="flex w-full items-center justify-center overflow-x-auto rounded-lg bg-white shadow-md">
@@ -64,18 +65,19 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
         <Type className="w-5 h-5" />
         Text Tools
       </button>
-      {/* <button
+      {/* SEO Builder Tab */}
+      <button
         className={`${baseBtn} ${
-          activeTab === "responsive-preview"
+          activeTab === "seo-builder"
             ? "border-b-4 border-blue-500 text-blue-600 bg-blue-50"
             : "text-gray-600 hover:text-blue-500"
         }`}
-        onClick={() => setActiveTab("responsive-preview")}
+        onClick={() => setActiveTab("seo-builder")}
       >
-        <MonitorSmartphone className="w-5 h-5" />
-        Responsive Preview
-      </button> */}
-      {/* Video Transcript Tab */}
+        <Wand2 className="w-5 h-5" />
+        SEO Builder
+      </button>
+
       <button
         className={`${baseBtn} ${
           activeTab === "video-transcript"
@@ -86,9 +88,9 @@ export default function TabsNavigation({ activeTab, setActiveTab }) {
       >
         <Captions className="w-5 h-5" />
         Video Transcript
-        <span className="ml-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+        {/* <span className="ml-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
           NEW
-        </span>
+        </span> */}
       </button>
       {/* ARIA & Tab Inspector Tab */}
       <button

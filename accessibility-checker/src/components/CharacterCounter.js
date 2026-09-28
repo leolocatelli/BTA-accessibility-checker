@@ -25,6 +25,8 @@ import {
   SEO_CONTENT_TEMPLATE_TYPES,
 } from "./seoContentTemplates";
 
+import RichTextEditor from "./RichTextEditor";
+
 export default function CharacterCounter({ cta_desc }) {
   const [text, setText] = useState("");
   const [richHtml, setRichHtml] = useState("");
@@ -39,6 +41,7 @@ export default function CharacterCounter({ cta_desc }) {
   const [seoTemplate, setSeoTemplate] = useState(
     SEO_CONTENT_TEMPLATE_TYPES.SEO_FOOTER,
   );
+  const [textMode, setTextMode] = useState("plain");  
 
   const [seoTemplateSettings, setSeoTemplateSettings] = useState({
     ...DEFAULT_FAQ_SETTINGS,
@@ -323,6 +326,7 @@ export default function CharacterCounter({ cta_desc }) {
 
   useEffect(() => {
     const onKey = (e) => {
+      if (textMode !== "plain") return;
       if (!(e.metaKey || e.ctrlKey)) return;
 
       const k = e.key.toLowerCase();
@@ -382,7 +386,54 @@ export default function CharacterCounter({ cta_desc }) {
         {statusMsg}
       </span>
 
-      {!seoMode && (
+
+<div className="flex justify-end mb-4">
+  <div className="flex items-center gap-2 text-xs">
+    <span
+      className={
+        textMode === "plain"
+          ? "font-semibold text-gray-800"
+          : "text-gray-400"
+      }
+    >
+      Plain
+    </span>
+
+    <button
+      type="button"
+      role="switch"
+      aria-checked={textMode === "rich"}
+      aria-label="Switch between plain text and rich text"
+      onClick={() =>
+        setTextMode((current) => (current === "plain" ? "rich" : "plain"))
+      }
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${
+        textMode === "rich" ? "bg-blue-500" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+          textMode === "rich"
+            ? "translate-x-[18px]"
+            : "translate-x-[2px]"
+        }`}
+      />
+    </button>
+
+    <span
+      className={
+        textMode === "rich"
+          ? "font-semibold text-blue-600"
+          : "text-gray-400"
+      }
+    >
+      Rich
+    </span>
+  </div>
+</div>
+
+
+      {!seoMode && textMode === "plain" && (
         <>
           <textarea
             id="text-area"
@@ -485,7 +536,7 @@ export default function CharacterCounter({ cta_desc }) {
               Spaces
             </button>
 
-            <button
+            {/* <button
               onClick={activateSeoMode}
               className={seoBtnStyle}
               aria-label="SEO Builder Tool"
@@ -493,7 +544,7 @@ export default function CharacterCounter({ cta_desc }) {
             >
               <Wand2 className="w-4 h-4" />
               SEO Builder Tool
-            </button>
+            </button> */}
           </div>
 
           <div className="flex flex-wrap gap-2 justify-center mb-6">
@@ -586,6 +637,10 @@ export default function CharacterCounter({ cta_desc }) {
           </div>
         </>
       )}
+
+      {!seoMode && textMode === "rich" && (
+  <RichTextEditor />
+)}
 
       {seoMode && (
         <SeoFooterEditor

@@ -11,6 +11,9 @@
     "node": "18.x"
   },
   "dependencies": {
+    "@tiptap/extension-link": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "https-proxy-agent": "^7.0.6"
   }
 }

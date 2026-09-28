@@ -1,7 +1,7 @@
 "use client"; // Required for Next.js App Router
 
 import { useState } from "react";
-import Image from "next/image"; 
+import Image from "next/image";
 import TabsNavigation from "../components/TabsNavigation";
 import AccessibilityChecker from "../components/AccessibilityChecker";
 import ImageAltGenerator from "../components/ImageAltGenerator";
@@ -11,7 +11,7 @@ import ResponsivePreviewTool from "../components/ResponsivePreviewTool";
 import AriaTabInspector from "@/components/AriaTabInspector";
 import UnifiedChecker from "../components/UnifiedChecker";
 import VideoTranscriptExtractor from "../components/VideoTranscriptExtractor";
-
+import SeoBuilderTool from "../components/SeoBuilderTool";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("accessibility");
@@ -21,7 +21,12 @@ export default function Home() {
       {/* 🔹 Fixed Title with Icon & Beta Badge */}
       <div className="text-center mb-20 flex items-center justify-center gap-3">
         {/* ✅ Accessibility Icon */}
-        <Image src="/accessibility-icon.ico" alt="Accessibility Icon" width={32} height={32} />
+        <Image
+          src="/accessibility-icon.ico"
+          alt="Accessibility Icon"
+          width={32}
+          height={32}
+        />
 
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           BTA Accessibility Tool
@@ -40,11 +45,11 @@ export default function Home() {
         {activeTab === "image-alt" && <ImageAltGenerator />}
         {activeTab === "contrast" && <ColorContrastChecker />}
         {activeTab === "text-tools" && <CharacterCounter />}
+        {activeTab === "seo-builder" && <SeoBuilderTool />}
         {activeTab === "inspector" && <AriaTabInspector />}
         {activeTab === "video-transcript" && <VideoTranscriptExtractor />}
         {/* {activeTab === "unified" && <UnifiedChecker />} */}
         {/* {activeTab === "responsive-preview" && <ResponsivePreviewTool />} */}
-
       </div>
     </div>
   );
